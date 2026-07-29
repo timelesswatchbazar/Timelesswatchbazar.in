@@ -40,18 +40,17 @@ export function Header() {
   const closeMenu = () => setMenuOpen(false);
 
   return (
-    <header className="site-header sticky top-0 z-[100] border-b border-zinc-200 !bg-white">
-      {/* Top bar: logo, search, icons */}
+    <header className="site-header sticky top-0 z-[100] border-b border-[var(--silver)] !bg-white">
       <div className="mx-auto flex max-w-7xl items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6 sm:py-4 lg:px-8">
         <Link
           href="/"
           className="brand-text shrink-0"
           aria-label="Timeless Watch Bazar home"
         >
-          <span className="block text-lg font-extrabold leading-none tracking-tight text-zinc-950 sm:text-xl lg:text-2xl">
+          <span className="block text-lg font-extrabold leading-none tracking-tight text-[var(--midnight)] sm:text-xl lg:text-2xl">
             Timeless
           </span>
-          <span className="block text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-zinc-950 sm:text-xs">
+          <span className="block text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[var(--gold)] sm:text-xs">
             Watch Bazar
           </span>
         </Link>
@@ -94,7 +93,7 @@ export function Header() {
       </div>
 
       {mobileSearchOpen && (
-        <div className="border-t border-zinc-100 px-4 py-3 lg:hidden">
+        <div className="border-t border-[var(--silver)] px-4 py-3 lg:hidden">
           <form className="header-search w-full" role="search" onSubmit={onSearch}>
             <input
               placeholder="Search products"
@@ -110,8 +109,7 @@ export function Header() {
         </div>
       )}
 
-      {/* Desktop nav — matches hmshoponline.com */}
-      <div className="hidden border-t border-zinc-100 lg:block">
+      <div className="hidden border-t border-[var(--silver)] lg:block">
         <div className="mx-auto flex max-w-7xl items-center gap-7 px-4 py-3 sm:px-6 lg:px-8">
           <Link className="nav-link" href="/">
             Home
@@ -121,12 +119,12 @@ export function Header() {
             <Link className="nav-link flex items-center" href="/categories">
               Categories
             </Link>
-            <div className="dropdown-panel invisible absolute left-0 top-full z-[200] w-64 border border-zinc-200 bg-white p-3 opacity-0 shadow-xl transition group-hover:visible group-hover:opacity-100">
+            <div className="dropdown-panel invisible absolute left-0 top-full z-[200] w-64 border border-[var(--silver)] bg-white p-3 opacity-0 shadow-xl transition group-hover:visible group-hover:opacity-100">
               <div className="flex flex-col">
                 {categories.map((cat) => (
                   <Link
                     key={cat.slug}
-                    className="rounded-md px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 hover:text-zinc-950"
+                    className="rounded-md px-3 py-2 text-sm font-medium text-[var(--navy)] transition hover:bg-[var(--surface)] hover:text-[var(--midnight)]"
                     href={`/categories/${cat.slug}`}
                   >
                     {cat.name}
@@ -145,29 +143,28 @@ export function Header() {
         </div>
       </div>
 
-      {/* Mobile Menu — matches hmshoponline.com */}
-      <div className="relative border-t border-zinc-100 px-4 py-2 lg:hidden">
+      <div className="relative border-t border-[var(--silver)] px-4 py-2 lg:hidden">
         <div className="mx-auto flex max-w-7xl justify-end">
           <details
             className="relative"
             open={menuOpen}
             onToggle={(e) => setMenuOpen((e.target as HTMLDetailsElement).open)}
           >
-            <summary className="cursor-pointer list-none rounded-md border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-900 [&::-webkit-details-marker]:hidden">
+            <summary className="cursor-pointer list-none rounded-md border border-[var(--gold)] bg-white px-3 py-2 text-sm font-semibold text-[var(--midnight)] [&::-webkit-details-marker]:hidden">
               Menu
             </summary>
-            <div className="mobile-menu-panel absolute right-0 z-[200] mt-3 w-[min(calc(100vw-2rem),18rem)] border border-zinc-200 bg-white p-4 shadow-xl">
+            <div className="mobile-menu-panel absolute right-0 z-[200] mt-3 w-[min(calc(100vw-2rem),18rem)] border border-[var(--silver)] bg-white p-4 shadow-xl">
               <nav aria-label="Mobile navigation" className="flex flex-col gap-4">
                 <Link className="nav-link" href="/" onClick={closeMenu}>
                   Home
                 </Link>
 
                 <div className="flex flex-col gap-2">
-                  <span className="text-sm font-bold text-zinc-950">Categories</span>
+                  <span className="text-sm font-bold text-[var(--midnight)]">Categories</span>
                   {categories.map((cat) => (
                     <Link
                       key={cat.slug}
-                      className="text-sm font-medium text-zinc-600"
+                      className="text-sm font-medium text-[var(--navy)]"
                       href={`/categories/${cat.slug}`}
                       onClick={closeMenu}
                     >
@@ -184,11 +181,10 @@ export function Header() {
                 </Link>
 
                 <Link
-                  className="primary-action inline-flex items-center justify-center gap-2 border border-zinc-200 text-center"
+                  className="btn-soft"
                   href="/cart"
                   onClick={closeMenu}
                 >
-                  <CartIcon className="h-4 w-4" />
                   Cart{itemCount > 0 ? ` (${itemCount})` : ""}
                 </Link>
               </nav>

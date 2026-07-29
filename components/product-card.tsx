@@ -6,9 +6,9 @@ import type { Product } from "@/lib/types";
 
 export function ProductCard({ product }: { product: Product }) {
   return (
-    <article className="product-card flex h-full flex-col overflow-hidden rounded-md border border-zinc-200 bg-white">
+    <article className="product-card flex h-full flex-col overflow-hidden rounded-md border border-[var(--silver)] bg-white">
       <Link href={`/products/${product.slug}`} className="block">
-        <div className="relative aspect-square bg-zinc-50">
+        <div className="relative aspect-square bg-[var(--surface)]">
           <Image
             src={product.image}
             alt={product.name}
@@ -20,13 +20,13 @@ export function ProductCard({ product }: { product: Product }) {
       </Link>
       <div className="flex flex-1 flex-col space-y-2 p-2.5 sm:space-y-3 sm:p-4">
         <Link href={`/products/${product.slug}`}>
-          <h3 className="line-clamp-2 min-h-[2.5rem] text-xs font-semibold leading-snug text-zinc-900 transition hover:text-zinc-600 sm:min-h-0 sm:text-sm">
+          <h3 className="line-clamp-2 min-h-[2.5rem] text-xs font-semibold leading-snug text-[var(--midnight)] transition hover:text-[var(--navy)] sm:min-h-0 sm:text-sm">
             {product.name}
           </h3>
         </Link>
         <Link
           href={`/products/${product.slug}`}
-          className="block text-sm font-bold text-zinc-950 sm:text-base"
+          className="block text-sm font-bold text-[var(--navy)] sm:text-base"
         >
           {formatPrice(product.price)}
         </Link>

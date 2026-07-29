@@ -39,8 +39,8 @@ export default async function ProductDetailPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-      <nav className="mb-4 flex items-center gap-1 overflow-hidden text-xs text-zinc-500 sm:mb-6 sm:text-sm">
-        <Link href="/" className="shrink-0 hover:text-zinc-900">
+      <nav className="mb-4 flex items-center gap-1 overflow-hidden text-xs text-[var(--muted)] sm:mb-6 sm:text-sm">
+        <Link href="/" className="shrink-0 hover:text-[var(--midnight)]">
           Home
         </Link>
         <span className="shrink-0">/</span>
@@ -48,18 +48,18 @@ export default async function ProductDetailPage({ params }: Props) {
           <>
             <Link
               href={`/categories/${category.slug}`}
-              className="shrink-0 hover:text-zinc-900"
+              className="shrink-0 hover:text-[var(--midnight)]"
             >
               {category.name}
             </Link>
             <span className="shrink-0">/</span>
           </>
         )}
-        <span className="truncate text-zinc-900">{product.name}</span>
+        <span className="truncate text-[var(--midnight)]">{product.name}</span>
       </nav>
 
       <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
-        <div className="relative aspect-square overflow-hidden rounded-md border border-zinc-200 bg-zinc-50">
+        <div className="relative aspect-square overflow-hidden rounded-md border border-[var(--silver)] bg-[var(--surface)]">
           <Image
             src={product.image}
             alt={product.name}
@@ -73,30 +73,30 @@ export default async function ProductDetailPage({ params }: Props) {
           {category && (
             <Link
               href={`/categories/${category.slug}`}
-              className="text-xs font-semibold uppercase tracking-wider text-zinc-500 sm:text-sm"
+              className="section-eyebrow"
             >
               {category.name}
             </Link>
           )}
-          <h1 className="mt-2 text-2xl font-bold tracking-tight text-zinc-950 sm:text-4xl">
+          <h1 className="mt-2 text-2xl font-bold tracking-tight text-[var(--midnight)] sm:text-4xl">
             {product.name}
           </h1>
-          <p className="mt-3 text-2xl font-extrabold text-zinc-950 sm:mt-4 sm:text-3xl">
+          <p className="mt-3 text-2xl font-extrabold text-[var(--navy)] sm:mt-4 sm:text-3xl">
             {formatPrice(product.price)}
           </p>
-          <p className="mt-4 text-sm leading-7 text-zinc-600 sm:mt-6 sm:text-base">
+          <p className="mt-4 text-sm leading-7 text-[var(--muted)] sm:mt-6 sm:text-base">
             {product.description}
           </p>
           <div className="mobile-sticky-bar">
             <div className="mb-2 flex items-center justify-between sm:hidden">
-              <span className="text-sm font-semibold text-zinc-700">Total</span>
-              <span className="text-lg font-extrabold text-zinc-950">
+              <span className="text-sm font-semibold text-[var(--navy)]">Total</span>
+              <span className="text-lg font-extrabold text-[var(--midnight)]">
                 {formatPrice(product.price)}
               </span>
             </div>
             <AddToCartButton product={product} />
           </div>
-          <ul className="mt-6 space-y-2 text-sm text-zinc-600 sm:mt-8">
+          <ul className="mt-6 space-y-2 text-sm text-[var(--muted)] sm:mt-8">
             <li>✓ Authentic timepieces</li>
             <li>✓ Secure checkout</li>
             <li>✓ Fast processing across UAE</li>
@@ -107,7 +107,7 @@ export default async function ProductDetailPage({ params }: Props) {
 
       {related.length > 0 && (
         <section className="mt-10 sm:mt-16">
-          <h2 className="text-xl font-bold tracking-tight text-zinc-950 sm:text-2xl">
+          <h2 className="text-xl font-bold tracking-tight text-[var(--midnight)] sm:text-2xl">
             Related Products
           </h2>
           <div className="product-grid mt-5 sm:mt-6">

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRef } from "react";
 import { ProductCard } from "@/components/product-card";
+import { ScrollReveal } from "@/components/scroll-reveal";
 import { ChevronLeftIcon, ChevronRightIcon } from "@/components/icons";
 import type { Product } from "@/lib/types";
 
@@ -28,16 +29,16 @@ export function ProductCarousel({
   if (products.length === 0) return null;
 
   return (
-    <section className="mt-8 content-reveal sm:mt-14">
+    <ScrollReveal as="section" className="mt-8 sm:mt-14">
       <div className="mb-4 flex items-center justify-between gap-3 sm:mb-5 sm:items-end sm:gap-4">
-        <h2 className="min-w-0 flex-1 text-xl font-bold tracking-tight text-zinc-950 sm:text-3xl">
+        <h2 className="min-w-0 flex-1 text-xl font-bold tracking-tight text-[var(--midnight)] sm:text-3xl">
           {title}
         </h2>
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <button
             type="button"
             aria-label="Scroll products left"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-zinc-300 text-zinc-800 transition hover:border-zinc-900 hover:bg-zinc-900 hover:text-white sm:h-9 sm:w-9"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--silver)] text-[var(--navy)] transition hover:border-[var(--midnight)] hover:bg-[var(--midnight)] hover:text-white sm:h-9 sm:w-9"
             onClick={() => scroll(-1)}
           >
             <ChevronLeftIcon className="h-4 w-4" />
@@ -45,14 +46,14 @@ export function ProductCarousel({
           <button
             type="button"
             aria-label="Scroll products right"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-zinc-300 text-zinc-800 transition hover:border-zinc-900 hover:bg-zinc-900 hover:text-white sm:h-9 sm:w-9"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--silver)] text-[var(--navy)] transition hover:border-[var(--midnight)] hover:bg-[var(--midnight)] hover:text-white sm:h-9 sm:w-9"
             onClick={() => scroll(1)}
           >
             <ChevronRightIcon className="h-4 w-4" />
           </button>
           <Link
             href={href}
-            className="ml-1 hidden text-sm font-bold text-zinc-950 transition hover:text-zinc-600 sm:inline"
+            className="ml-1 hidden text-sm font-bold text-[var(--gold)] transition hover:text-[var(--gold-hover)] sm:inline"
           >
             {linkLabel}
           </Link>
@@ -73,10 +74,10 @@ export function ProductCarousel({
       </div>
       <Link
         href={href}
-        className="mt-3 inline-block text-sm font-bold text-zinc-950 sm:hidden"
+        className="mt-3 inline-block text-sm font-bold text-[var(--gold)] sm:hidden"
       >
         {linkLabel}
       </Link>
-    </section>
+    </ScrollReveal>
   );
 }
