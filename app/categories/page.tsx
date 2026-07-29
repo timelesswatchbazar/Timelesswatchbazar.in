@@ -1,0 +1,30 @@
+import type { Metadata } from "next";
+import { ProductCard } from "@/components/product-card";
+import { products } from "@/lib/products";
+
+export const metadata: Metadata = {
+  title: "All Categories",
+  description: "Browse every product across all categories in one place.",
+};
+
+export default function CategoriesPage() {
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+      <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 sm:text-sm">
+        All categories
+      </p>
+      <h1 className="mt-2 text-2xl font-bold tracking-tight text-zinc-950 sm:text-4xl">
+        All products
+      </h1>
+      <p className="mt-2 max-w-2xl text-sm text-zinc-600 sm:mt-3 sm:text-base">
+        Browse every product across all categories in one place.
+      </p>
+
+      <div className="product-grid mt-6 sm:mt-8">
+        {products.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </div>
+    </div>
+  );
+}
