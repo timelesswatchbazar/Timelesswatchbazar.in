@@ -87,7 +87,7 @@ export default async function AdminProductsPage({ searchParams }: Props) {
             />
             <div className="grid grid-cols-2 gap-3">
               <Field
-                label="Actual price (AED)"
+                label="Actual price (₹)"
                 name="actual_price"
                 type="number"
                 step="0.01"
@@ -95,7 +95,7 @@ export default async function AdminProductsPage({ searchParams }: Props) {
                 required
               />
               <Field
-                label="Sale price (AED)"
+                label="Sale price (₹)"
                 name="sale_price"
                 type="number"
                 step="0.01"

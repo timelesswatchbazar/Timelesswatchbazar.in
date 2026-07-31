@@ -71,7 +71,7 @@ create table if not exists public.customers (
   phone text not null default '',
   address text not null default '',
   city text not null default '',
-  country text not null default 'United Arab Emirates',
+  country text not null default 'India',
   notes text not null default '',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -91,7 +91,7 @@ create table if not exists public.orders (
   customer_phone text not null default '',
   shipping_address text not null default '',
   city text not null default '',
-  country text not null default 'United Arab Emirates',
+  country text not null default 'India',
   status text not null default 'pending'
     check (status in ('pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled')),
   payment_status text not null default 'unpaid'

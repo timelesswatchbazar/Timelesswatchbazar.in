@@ -71,10 +71,10 @@ export default function ContactPage() {
             <div>
               <p className="text-sm font-semibold text-[var(--muted)]">Phone / WhatsApp</p>
               <a
-                href="tel:+971500000000"
+                href="tel:+919876543210"
                 className="mt-1 block text-lg font-bold text-[var(--gold)] hover:text-[var(--gold-hover)]"
               >
-                +971 50 000 0000
+                +91 98765 43210
               </a>
             </div>
             <div>
@@ -89,7 +89,7 @@ export default function ContactPage() {
             </div>
             <div>
               <p className="text-sm font-semibold text-[var(--muted)]">Location</p>
-              <p className="mt-1 text-[var(--navy)]">Dubai, United Arab Emirates</p>
+              <p className="mt-1 text-[var(--navy)]">Ujjain, Madhya Pradesh, India</p>
             </div>
           </div>
         </ScrollReveal>

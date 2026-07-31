@@ -8,7 +8,7 @@ export default function TermsPage() {
     <PolicyPage title="Terms & Conditions">
       <p>
         By using Timeless Watch Bazar, you agree to shop in good faith, provide accurate
-        order information, and comply with UAE consumer laws where applicable.
+        order information, and comply with applicable Indian consumer laws.
       </p>
       <p>
         Product availability and pricing may change without notice. Images are for

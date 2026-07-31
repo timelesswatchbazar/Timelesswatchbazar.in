@@ -50,10 +50,25 @@ export function BannerCarousel({ banners = [] }: { banners?: BannerRow[] }) {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
-    const id = window.setInterval(() => {
-      setIndex((i) => (i + 1) % slides.length);
-    }, 5000);
-    return () => window.clearInterval(id);
+    let id = 0;
+    const start = () => {
+      id = window.setInterval(() => {
+        setIndex((i) => (i + 1) % slides.length);
+      }, 6000);
+    };
+    const stop = () => window.clearInterval(id);
+
+    const onVisibility = () => {
+      if (document.hidden) stop();
+      else start();
+    };
+
+    if (!document.hidden) start();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, [slides.length]);
 
   return (
@@ -62,16 +77,18 @@ export function BannerCarousel({ banners = [] }: { banners?: BannerRow[] }) {
         className="banner-carousel-track"
         style={{ transform: `translateX(-${index * 100}%)` }}
       >
-        {slides.map((banner) => (
+        {slides.map((banner, i) => (
           <div key={banner.id} className="banner-carousel-slide">
             <Link href={banner.link_url || "/products"} className="absolute inset-0 block">
               <Image
                 src={banner.image_url}
                 alt={banner.title || "Banner"}
                 fill
-                priority
+                priority={i === 0}
+                loading={i === 0 ? "eager" : "lazy"}
                 className="object-cover"
                 sizes="100vw"
+                quality={75}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[var(--midnight)]/80 via-[var(--navy)]/45 to-[var(--midnight)]/25 sm:bg-gradient-to-r sm:from-[var(--midnight)]/75 sm:via-[var(--navy)]/40 sm:to-transparent" />
               <div className="absolute inset-0 flex items-end px-4 pb-10 sm:items-center sm:px-12 sm:pb-0 lg:px-16">

@@ -102,6 +102,7 @@ body {
 }
 
 .scroll-reveal.is-visible {
+  will-change: auto;
   opacity: 1;
   transform: translateY(0);
 }
@@ -233,7 +234,7 @@ button.nav-link {
   height: 1.25rem;
   padding: 0 0.25rem;
   font-size: 0.7rem;
-  font-weight: 800;
+  font-weight: 700;
   display: flex;
   position: absolute;
   top: -0.35rem;
@@ -363,7 +364,7 @@ button.nav-link {
   height: clamp(220px, 52vw, 420px);
   position: relative;
   overflow: hidden;
-  box-shadow: 0 24px 60px color-mix(in srgb, var(--midnight) 18%, transparent);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--midnight) 12%, transparent);
 }
 
 @media (min-width: 640px) {
@@ -413,7 +414,7 @@ button.nav-link {
   color: var(--midnight);
   background: #fff;
   font-size: 1.15rem;
-  font-weight: 800;
+  font-weight: 700;
   transition:
     background 0.16s,
     border-color 0.16s,
@@ -433,7 +434,7 @@ button.nav-link {
   text-align: center;
   background: var(--surface);
   width: 100%;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .checkout-submit {
@@ -500,8 +501,7 @@ button.nav-link {
   bottom: 0;
   z-index: 30;
   border-top: 1px solid var(--silver);
-  background: color-mix(in srgb, white 92%, transparent);
-  backdrop-filter: blur(8px);
+  background: #fff;
   padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
 }
 

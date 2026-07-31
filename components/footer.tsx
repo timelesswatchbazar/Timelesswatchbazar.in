@@ -96,13 +96,13 @@ export function Footer() {
           <div className="mt-4 space-y-3 text-sm text-[var(--silver)]">
             <p>info@timelesswatchbazar.com</p>
             <a
-              href="tel:+971500000000"
+              href="tel:+919876543210"
               className="block w-fit transition hover:text-white"
             >
-              +971 50 000 0000
+              +91 98765 43210
             </a>
             <p>Mon to Sat, 10:00 AM - 7:00 PM</p>
-            <p>United Arab Emirates</p>
+            <p>Ujjain, Madhya Pradesh, India</p>
           </div>
         </div>
         <div>
@@ -138,7 +138,7 @@ export function Footer() {
       <div className="border-t border-[var(--navy)]">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-xs text-[var(--silver)] sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
           <p>© {new Date().getFullYear()} Timeless Watch Bazar. All rights reserved.</p>
-          <p>Crafted for watch lovers in the UAE & beyond.</p>
+          <p>Crafted for watch lovers in Ujjain & across India.</p>
         </div>
       </div>
     </footer>

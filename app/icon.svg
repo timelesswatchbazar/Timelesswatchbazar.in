@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Timeless Watch Bazar">
+  <style>
+    .bg { fill: #0A2540; }
+    .bezel { fill: #C7A252; }
+    .dial { fill: #F7F4EE; }
+    .hand { stroke: #0A2540; stroke-linecap: round; }
+    .tick { stroke: #C7A252; stroke-linecap: round; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #16324F; }
+      .dial { fill: #F7F4EE; }
+    }
+  </style>
+  <!-- Rounded app tile -->
+  <rect class="bg" width="32" height="32" rx="7"/>
+  <!-- Watch bezel -->
+  <circle cx="16" cy="16" r="11" class="bezel"/>
+  <!-- Dial -->
+  <circle cx="16" cy="16" r="8.5" class="dial"/>
+  <!-- Hour ticks at 12 / 3 / 6 / 9 -->
+  <line class="tick" x1="16" y1="8.8" x2="16" y2="10.6" stroke-width="1.4"/>
+  <line class="tick" x1="23.2" y1="16" x2="21.4" y2="16" stroke-width="1.4"/>
+  <line class="tick" x1="16" y1="23.2" x2="16" y2="21.4" stroke-width="1.4"/>
+  <line class="tick" x1="8.8" y1="16" x2="10.6" y2="16" stroke-width="1.4"/>
+  <!-- Hands at ~10:10 -->
+  <line class="hand" x1="16" y1="16" x2="16" y2="10.4" stroke-width="1.7"/>
+  <line class="hand" x1="16" y1="16" x2="20.8" y2="13.2" stroke-width="1.4"/>
+  <!-- Center pivot -->
+  <circle cx="16" cy="16" r="1.3" fill="#C7A252"/>
+</svg>

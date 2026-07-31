@@ -1,3 +1,9 @@
+/** Format store prices in Indian Rupees (Ujjain / India). */
 export function formatMoney(amount: number) {
-  return `AED ${Number(amount).toFixed(amount % 1 === 0 ? 0 : 2)}`;
+  const value = Number(amount);
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: Number.isInteger(value) ? 0 : 2,
+  }).format(value);
 }

@@ -115,7 +115,7 @@ export default async function ProductDetailPage({ params }: Props) {
           <ul className="mt-6 space-y-2 text-sm text-[var(--muted)] sm:mt-8">
             <li>✓ Authentic timepieces</li>
             <li>✓ Secure checkout</li>
-            <li>✓ Fast processing across UAE</li>
+            <li>✓ Fast processing from Ujjain, India</li>
             <li>✓ Easy returns within policy window</li>
           </ul>
         </div>

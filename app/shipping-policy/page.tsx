@@ -7,12 +7,14 @@ export default function ShippingPolicyPage() {
   return (
     <PolicyPage title="Shipping Policy">
       <p>
-        We process orders quickly and ship across the UAE. Delivery timelines typically
-        range from 1–5 business days depending on your location and product availability.
+        We process orders quickly and ship across India from our base in Ujjain, Madhya
+        Pradesh. Local/nearby delivery typically takes 1–3 business days. Pan-India
+        delivery usually takes 3–7 business days depending on your location and product
+        availability.
       </p>
       <p>
         Shipping fees, if any, are shown at checkout. You will receive updates once your
-        order is dispatched. For international shipping requests, please contact support.
+        order is dispatched. For special delivery requests, please contact support.
       </p>
     </PolicyPage>
   );

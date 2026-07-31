@@ -261,7 +261,11 @@ export const products: Product[] = [
 ];
 
 export function formatPrice(price: number) {
-  return `AED ${price}`;
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: Number.isInteger(price) ? 0 : 2,
+  }).format(price);
 }
 
 export function getProductBySlug(slug: string) {

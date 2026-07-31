@@ -8,7 +8,8 @@ import "./globals.css";
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "600", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -17,7 +18,11 @@ export const metadata: Metadata = {
     template: "%s | Timeless Watch Bazar",
   },
   description:
-    "Shop men's, women's, luxury, smart, and sports watches at Timeless Watch Bazar. Quality timepieces at amazing prices.",
+    "Shop men's, women's, luxury, smart, and sports watches at Timeless Watch Bazar in Ujjain, India. Quality timepieces at amazing prices in INR.",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/apple-icon", sizes: "180x180", type: "image/png" }],
+  },
 };
 
 export const viewport: Viewport = {

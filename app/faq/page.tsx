@@ -14,7 +14,7 @@ const faqs = [
   },
   {
     q: "How long does delivery take?",
-    a: "Most UAE orders arrive within 1–5 business days after processing.",
+    a: "Most orders in Ujjain and nearby areas arrive within 1–3 business days. Pan-India delivery typically takes 3–7 business days after processing.",
   },
   {
     q: "Can I return a watch?",
