@@ -1,21 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/product-card";
-import {
-  categories,
-  getCategoryBySlug,
-  getProductsByCategory,
-} from "@/lib/products";
+import { fetchByCategory, fetchCategories } from "@/lib/catalog";
 
 type Props = { params: Promise<{ slug: string }> };
 
-export function generateStaticParams() {
-  return categories.map((c) => ({ slug: c.slug }));
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const category = getCategoryBySlug(slug);
+  const categories = await fetchCategories();
+  const category = categories.find((c) => c.slug === slug);
   if (!category) return { title: "Category not found" };
   return {
     title: category.name,
@@ -25,16 +18,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CategoryPage({ params }: Props) {
   const { slug } = await params;
-  const category = getCategoryBySlug(slug);
+  const categories = await fetchCategories();
+  const category = categories.find((c) => c.slug === slug);
   if (!category) notFound();
 
-  const items = getProductsByCategory(slug);
+  const items = await fetchByCategory(slug);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-      <p className="section-eyebrow">
-        Category
-      </p>
+      <p className="section-eyebrow">Category</p>
       <h1 className="mt-2 text-2xl font-bold tracking-tight text-[var(--midnight)] sm:text-4xl">
         {category.name}
       </h1>
@@ -47,7 +39,7 @@ export default async function CategoryPage({ params }: Props) {
         ))}
       </div>
       {items.length === 0 && (
-        <p className="mt-8 text-zinc-600">No products in this category yet.</p>
+        <p className="mt-8 text-[var(--muted)]">No products in this category yet.</p>
       )}
     </div>
   );

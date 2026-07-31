@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Poppins } from "next/font/google";
 import { CartProvider } from "@/components/cart-context";
-import { Footer } from "@/components/footer";
-import { Header } from "@/components/header";
+import { StoreShell } from "@/components/store-shell";
+import { fetchCategories } from "@/lib/catalog";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -27,18 +27,18 @@ export const viewport: Viewport = {
   themeColor: "#0A2540",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const categories = await fetchCategories();
+
   return (
     <html lang="en" className={`${poppins.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
         <CartProvider>
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          <StoreShell categories={categories}>{children}</StoreShell>
         </CartProvider>
       </body>
     </html>

@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
 import { ProductCard } from "@/components/product-card";
-import { products } from "@/lib/products";
+import { fetchStoreProducts } from "@/lib/catalog";
 
 export const metadata: Metadata = {
   title: "All Categories",
   description: "Browse every product across all categories in one place.",
 };
 
-export default function CategoriesPage() {
+export default async function CategoriesPage() {
+  const products = await fetchStoreProducts();
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-      <p className="section-eyebrow">
-        All categories
-      </p>
+      <p className="section-eyebrow">All categories</p>
       <h1 className="mt-2 text-2xl font-bold tracking-tight text-[var(--midnight)] sm:text-4xl">
         All products
       </h1>

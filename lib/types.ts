@@ -9,8 +9,10 @@ export type Product = {
   slug: string;
   name: string;
   price: number;
+  actualPrice?: number;
   category: string;
   image: string;
   description: string;
   isNew?: boolean;
+  isBestSeller?: boolean;
 };

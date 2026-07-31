@@ -5,9 +5,10 @@ import { usePathname, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { useCart } from "@/components/cart-context";
 import { CartIcon, SearchIcon, UserIcon } from "@/components/icons";
-import { categories } from "@/lib/products";
+import { categories as localCategories } from "@/lib/products";
+import type { Category } from "@/lib/types";
 
-export function Header() {
+export function Header({ categories = localCategories }: { categories?: Category[] }) {
   const { itemCount } = useCart();
   const router = useRouter();
   const pathname = usePathname();
@@ -180,11 +181,7 @@ export function Header() {
                   Contact Us
                 </Link>
 
-                <Link
-                  className="btn-soft"
-                  href="/cart"
-                  onClick={closeMenu}
-                >
+                <Link className="btn-soft" href="/cart" onClick={closeMenu}>
                   Cart{itemCount > 0 ? ` (${itemCount})` : ""}
                 </Link>
               </nav>
