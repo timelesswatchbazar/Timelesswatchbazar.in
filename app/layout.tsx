@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Poppins } from "next/font/google";
 import { CartProvider } from "@/components/cart-context";
+import { GoogleAnalytics } from "@/components/google-analytics";
 import { JsonLd } from "@/components/json-ld";
 import { StoreShell } from "@/components/store-shell";
 import { fetchCategories } from "@/lib/catalog";
@@ -108,6 +109,7 @@ export default async function RootLayout({
   return (
     <html lang="en-IN" className={`${poppins.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
+        <GoogleAnalytics />
         <JsonLd data={orgJsonLd} />
         <CartProvider>
           <StoreShell categories={categories}>{children}</StoreShell>
