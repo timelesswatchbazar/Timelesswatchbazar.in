@@ -20,13 +20,21 @@ type CartContextValue = {
   itemCount: number;
   subtotal: number;
   addItem: (product: Product, quantity?: number) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  removeItem: (productId: string, variantId?: string) => void;
+  updateQuantity: (productId: string, quantity: number, variantId?: string) => void;
   clearCart: () => void;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
-const STORAGE_KEY = "timeless-watch-bazar-cart";
+const STORAGE_KEY = "timeless-watch-bazar-cart-v2";
+
+function cartKey(productId: string, variantId?: string | null) {
+  return `${productId}::${variantId || "default"}`;
+}
+
+function itemKey(item: CartItem) {
+  return cartKey(item.product.id, item.product.variantId);
+}
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
@@ -52,33 +60,35 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addItem = useCallback((product: Product, quantity = 1) => {
     setItems((prev) => {
-      const existing = prev.find((i) => i.product.id === product.id);
+      const key = cartKey(product.id, product.variantId);
+      const existing = prev.find((i) => itemKey(i) === key);
       if (existing) {
         return prev.map((i) =>
-          i.product.id === product.id
-            ? { ...i, quantity: i.quantity + quantity }
-            : i,
+          itemKey(i) === key ? { ...i, quantity: i.quantity + quantity } : i,
         );
       }
       return [...prev, { product, quantity }];
     });
   }, []);
 
-  const removeItem = useCallback((productId: string) => {
-    setItems((prev) => prev.filter((i) => i.product.id !== productId));
+  const removeItem = useCallback((productId: string, variantId?: string) => {
+    const key = cartKey(productId, variantId);
+    setItems((prev) => prev.filter((i) => itemKey(i) !== key));
   }, []);
 
-  const updateQuantity = useCallback((productId: string, quantity: number) => {
-    setItems((prev) =>
-      prev
-        .map((i) =>
-          i.product.id === productId
-            ? { ...i, quantity: Math.max(0, quantity) }
-            : i,
-        )
-        .filter((i) => i.quantity > 0),
-    );
-  }, []);
+  const updateQuantity = useCallback(
+    (productId: string, quantity: number, variantId?: string) => {
+      const key = cartKey(productId, variantId);
+      setItems((prev) =>
+        prev
+          .map((i) =>
+            itemKey(i) === key ? { ...i, quantity: Math.max(0, quantity) } : i,
+          )
+          .filter((i) => i.quantity > 0),
+      );
+    },
+    [],
+  );
 
   const clearCart = useCallback(() => setItems([]), []);
 

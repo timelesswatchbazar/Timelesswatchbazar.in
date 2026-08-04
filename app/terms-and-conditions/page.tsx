@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { PolicyPage } from "@/components/policy-page";
 
-export const metadata: Metadata = { title: "Terms & Conditions" };
+export const metadata: Metadata = {
+  title: "Terms & Conditions",
+  description: "Terms and conditions for shopping at Timeless Watch Bazar in India.",
+  alternates: { canonical: "/terms-and-conditions" },
+};
 
 export default function TermsPage() {
   return (

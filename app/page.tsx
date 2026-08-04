@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { BannerCarousel } from "@/components/banner-carousel";
 import { ProductCarousel } from "@/components/product-carousel";
 import {
@@ -5,9 +6,25 @@ import {
   fetchCategories,
   fetchStoreProducts,
 } from "@/lib/catalog";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
+
+export const revalidate = 60;
+
+export const metadata: Metadata = {
+  title: {
+    absolute: `${SITE_NAME} | Buy Watches Online in Ujjain, India`,
+  },
+  description: SITE_DESCRIPTION,
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: `${SITE_NAME} | Buy Watches Online in Ujjain, India`,
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
+    type: "website",
+  },
+};
 
 export default async function HomePage() {
-  // One products fetch for the whole homepage (avoids lag from N category queries)
   const [banners, categories, products] = await Promise.all([
     fetchBanners(),
     fetchCategories(),
@@ -25,6 +42,10 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
+      <h1 className="sr-only">
+        Timeless Watch Bazar — Buy men&apos;s, women&apos;s, smart, and luxury watches online
+        in Ujjain, India
+      </h1>
       <BannerCarousel banners={banners} />
       <ProductCarousel
         title="New Arrivals"

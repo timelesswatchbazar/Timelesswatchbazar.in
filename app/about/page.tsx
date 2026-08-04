@@ -4,7 +4,8 @@ import { ScrollReveal } from "@/components/scroll-reveal";
 export const metadata: Metadata = {
   title: "About Us",
   description:
-    "Learn about Timeless Watch Bazar — your destination for quality watches at amazing prices.",
+    "Learn about Timeless Watch Bazar in Ujjain, Madhya Pradesh — quality men's, women's, smart, and luxury watches at competitive INR prices.",
+  alternates: { canonical: "/about" },
 };
 
 export default function AboutPage() {

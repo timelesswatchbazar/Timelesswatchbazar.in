@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import { PolicyPage } from "@/components/policy-page";
 
-export const metadata: Metadata = { title: "Return Policy" };
+export const metadata: Metadata = {
+  title: "Return Policy",
+  description:
+    "Return and refund policy for unused watches purchased from Timeless Watch Bazar.",
+  alternates: { canonical: "/return-policy" },
+};
 
 export default function ReturnPolicyPage() {
   return (

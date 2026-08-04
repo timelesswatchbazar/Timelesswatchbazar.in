@@ -92,6 +92,11 @@ export default async function AdminOrderDetailPage({ params, searchParams }: Pro
                     />
                     <div>
                       <p className="font-semibold">{item.product_name}</p>
+                      {item.variant_label ? (
+                        <p className="text-xs font-medium text-[var(--gold)]">
+                          Color: {item.variant_label}
+                        </p>
+                      ) : null}
                       <p className="text-[var(--muted)]">
                         {formatMoney(Number(item.unit_price))} × {item.quantity}
                       </p>

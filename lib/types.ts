@@ -4,6 +4,17 @@ export type Category = {
   description: string;
 };
 
+export type ProductVariant = {
+  id: string;
+  colorName: string;
+  colorHex: string;
+  image: string;
+  stock: number;
+  actualPrice?: number | null;
+  price?: number | null;
+  isDefault?: boolean;
+};
+
 export type Product = {
   id: string;
   slug: string;
@@ -15,4 +26,8 @@ export type Product = {
   description: string;
   isNew?: boolean;
   isBestSeller?: boolean;
+  variants?: ProductVariant[];
+  /** Selected when adding to cart */
+  variantId?: string;
+  colorName?: string;
 };

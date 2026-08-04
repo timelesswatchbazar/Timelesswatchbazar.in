@@ -9,6 +9,22 @@ export type CategoryRow = {
   updated_at: string;
 };
 
+export type ProductVariantRow = {
+  id: string;
+  product_id: string;
+  color_name: string;
+  color_hex: string;
+  image_url: string;
+  stock: number;
+  actual_price: number | null;
+  sale_price: number | null;
+  is_default: boolean;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
 export type ProductRow = {
   id: string;
   category_id: string | null;
@@ -27,6 +43,7 @@ export type ProductRow = {
   created_at: string;
   updated_at: string;
   categories?: Pick<CategoryRow, "id" | "name" | "slug"> | null;
+  product_variants?: ProductVariantRow[];
 };
 
 export type BannerRow = {
@@ -96,7 +113,21 @@ export type OrderItemRow = {
   unit_price: number;
   quantity: number;
   line_total: number;
+  variant_id?: string | null;
+  variant_label?: string;
   created_at: string;
+};
+
+/** Storefront color option */
+export type StoreVariant = {
+  id: string;
+  colorName: string;
+  colorHex: string;
+  image: string;
+  stock: number;
+  actualPrice: number | null;
+  price: number | null;
+  isDefault: boolean;
 };
 
 /** Storefront-friendly product shape */
@@ -113,26 +144,59 @@ export type StoreProduct = {
   stock: number;
   isNew?: boolean;
   isBestSeller?: boolean;
+  variants?: StoreVariant[];
 };
 
+export function mapVariantRow(row: ProductVariantRow): StoreVariant {
+  return {
+    id: row.id,
+    colorName: row.color_name,
+    colorHex: row.color_hex || "#C7A252",
+    image: row.image_url,
+    stock: row.stock,
+    actualPrice: row.actual_price == null ? null : Number(row.actual_price),
+    price: row.sale_price == null ? null : Number(row.sale_price),
+    isDefault: row.is_default,
+  };
+}
+
 export function mapProductRow(row: ProductRow): StoreProduct {
+  const variants = (row.product_variants || [])
+    .filter((v) => v.is_active)
+    .sort((a, b) => a.sort_order - b.sort_order || a.color_name.localeCompare(b.color_name))
+    .map(mapVariantRow);
+
+  const defaultVariant =
+    variants.find((v) => v.isDefault) || variants[0] || null;
+
   return {
     id: row.id,
     slug: row.slug,
     name: row.name,
     description: row.description,
-    image: row.image_url,
+    image: defaultVariant?.image || row.image_url,
     category: row.categories?.slug ?? "",
     categoryName: row.categories?.name,
     actualPrice: Number(row.actual_price),
     price: Number(row.sale_price),
-    stock: row.stock,
+    stock: defaultVariant ? defaultVariant.stock : row.stock,
     isNew: row.is_new_arrival,
     isBestSeller: row.is_best_seller,
+    variants,
   };
 }
 
 export function discountPercent(actual: number, sale: number) {
   if (!actual || sale >= actual) return 0;
   return Math.round(((actual - sale) / actual) * 100);
+}
+
+export function resolveVariantPricing(
+  product: Pick<StoreProduct, "actualPrice" | "price">,
+  variant?: StoreVariant | null,
+) {
+  const actual =
+    variant?.actualPrice != null ? variant.actualPrice : product.actualPrice;
+  const price = variant?.price != null ? variant.price : product.price;
+  return { actualPrice: actual, price };
 }

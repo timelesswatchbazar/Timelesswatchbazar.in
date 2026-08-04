@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/json-ld";
 import { PolicyPage } from "@/components/policy-page";
 
-export const metadata: Metadata = { title: "FAQ" };
+export const metadata: Metadata = {
+  title: "FAQ",
+  description:
+    "Frequently asked questions about Timeless Watch Bazar orders, delivery in India, authenticity, payments, and returns.",
+  alternates: { canonical: "/faq" },
+};
 
 const faqs = [
   {
@@ -23,8 +29,22 @@ const faqs = [
 ];
 
 export default function FaqPage() {
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.a,
+      },
+    })),
+  };
+
   return (
     <PolicyPage title="FAQ">
+      <JsonLd data={faqJsonLd} />
       <div className="space-y-6">
         {faqs.map((item) => (
           <div key={item.q}>

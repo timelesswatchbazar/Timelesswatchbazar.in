@@ -138,7 +138,17 @@ export function Footer() {
       <div className="border-t border-[var(--navy)]">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-xs text-[var(--silver)] sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
           <p>© {new Date().getFullYear()} Timeless Watch Bazar. All rights reserved.</p>
-          <p>Crafted for watch lovers in Ujjain & across India.</p>
+          <p>
+            This website is designed and developed by{" "}
+            <a
+              href="https://hussainiitservices.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-[var(--gold)] transition hover:text-white"
+            >
+              hussainiitservices.com
+            </a>
+          </p>
         </div>
       </div>
     </footer>

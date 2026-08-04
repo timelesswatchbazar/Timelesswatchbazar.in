@@ -5,7 +5,9 @@ import { fetchStoreProducts } from "@/lib/catalog";
 type Props = { searchParams: Promise<{ q?: string }> };
 
 export const metadata: Metadata = {
-  title: "Search",
+  title: "Search Watches",
+  description: "Search men's, women's, smart, and luxury watches at Timeless Watch Bazar.",
+  robots: { index: false, follow: true },
 };
 
 export default async function SearchPage({ searchParams }: Props) {

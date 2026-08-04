@@ -1,26 +1,49 @@
-import Image from "next/image";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AddToCartButton } from "@/components/add-to-cart-button";
+import { JsonLd } from "@/components/json-ld";
 import { ProductCard } from "@/components/product-card";
+import { ProductPurchasePanel } from "@/components/product-purchase-panel";
 import {
   fetchByCategory,
   fetchCategories,
   fetchStoreProduct,
   fetchStoreProducts,
 } from "@/lib/catalog";
-import { discountPercent } from "@/lib/database.types";
-import { formatMoney } from "@/lib/money";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 type Props = { params: Promise<{ slug: string }> };
 
-export async function generateMetadata({ params }: Props) {
+export const revalidate = 60;
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const product = await fetchStoreProduct(slug);
-  if (!product) return { title: "Product not found" };
+  if (!product) return { title: "Product not found", robots: { index: false } };
+
+  const description =
+    product.description?.slice(0, 155) ||
+    `Buy ${product.name} online at ${SITE_NAME}, Ujjain, India.`;
+
   return {
     title: product.name,
-    description: product.description,
+    description,
+    alternates: { canonical: `/products/${product.slug}` },
+    openGraph: {
+      title: `${product.name} | ${SITE_NAME}`,
+      description,
+      url: `${SITE_URL}/products/${product.slug}`,
+      type: "website",
+      images: product.image
+        ? [{ url: product.image, alt: product.name }]
+        : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: product.name,
+      description,
+      images: product.image ? [product.image] : undefined,
+    },
   };
 }
 
@@ -30,23 +53,57 @@ export default async function ProductDetailPage({ params }: Props) {
   if (!product) notFound();
 
   const categories = await fetchCategories();
-  const category = categories.find((c) => c.slug === product.category);
-  const related = (await fetchByCategory(product.category))
-    .filter((p) => p.id !== product.id)
-    .slice(0, 4);
+  const category =
+    categories.find((c) => c.slug === product.category) ||
+    (product.categoryName
+      ? { slug: product.category, name: product.categoryName, description: "" }
+      : undefined);
 
-  // Ensure related has fallback if category empty
+  const related = product.category
+    ? (await fetchByCategory(product.category))
+        .filter((p) => p.id !== product.id)
+        .slice(0, 4)
+    : [];
+
   const relatedProducts =
     related.length > 0
       ? related
       : (await fetchStoreProducts()).filter((p) => p.id !== product.id).slice(0, 4);
 
-  const actual = product.actualPrice ?? product.price;
-  const off = discountPercent(actual, product.price);
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    image: product.image ? [product.image] : undefined,
+    sku: product.id,
+    brand: {
+      "@type": "Brand",
+      name: SITE_NAME,
+    },
+    offers: {
+      "@type": "Offer",
+      url: `${SITE_URL}/products/${product.slug}`,
+      priceCurrency: "INR",
+      price: product.price,
+      availability:
+        product.stock > 0
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+      seller: {
+        "@type": "Organization",
+        name: SITE_NAME,
+      },
+    },
+  };
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-      <nav className="mb-4 flex items-center gap-1 overflow-hidden text-xs text-[var(--muted)] sm:mb-6 sm:text-sm">
+      <JsonLd data={productJsonLd} />
+      <nav
+        aria-label="Breadcrumb"
+        className="mb-4 flex items-center gap-1 overflow-hidden text-xs text-[var(--muted)] sm:mb-6 sm:text-sm"
+      >
         <Link href="/" className="shrink-0 hover:text-[var(--midnight)]">
           Home
         </Link>
@@ -66,59 +123,24 @@ export default async function ProductDetailPage({ params }: Props) {
       </nav>
 
       <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
-        <div className="relative aspect-square overflow-hidden rounded-md border border-[var(--silver)] bg-[var(--surface)]">
-          <Image
-            src={product.image}
-            alt={product.name}
-            fill
-            priority
-            className="object-cover"
-            sizes="(max-width: 1024px) 100vw, 50vw"
-          />
-        </div>
-        <div className="content-reveal pb-20 sm:pb-0">
-          {category && (
+        {category && (
+          <div className="lg:col-span-2">
             <Link href={`/categories/${category.slug}`} className="section-eyebrow">
               {category.name}
             </Link>
-          )}
-          <h1 className="mt-2 text-2xl font-bold tracking-tight text-[var(--midnight)] sm:text-4xl">
-            {product.name}
-          </h1>
-          <div className="mt-3 flex flex-wrap items-baseline gap-3 sm:mt-4">
-            <p className="text-2xl font-extrabold text-[var(--navy)] sm:text-3xl">
-              {formatMoney(product.price)}
-            </p>
-            {off > 0 && (
-              <>
-                <p className="text-lg text-[var(--muted)] line-through">
-                  {formatMoney(actual)}
-                </p>
-                <span className="rounded bg-[var(--gold)]/20 px-2 py-0.5 text-sm font-bold text-[var(--midnight)]">
-                  {off}% off
-                </span>
-              </>
-            )}
+            <h1 className="mt-2 text-2xl font-bold tracking-tight text-[var(--midnight)] sm:text-4xl">
+              {product.name}
+            </h1>
           </div>
-          <p className="mt-4 text-sm leading-7 text-[var(--muted)] sm:mt-6 sm:text-base">
-            {product.description}
-          </p>
-          <div className="mobile-sticky-bar">
-            <div className="mb-2 flex items-center justify-between sm:hidden">
-              <span className="text-sm font-semibold text-[var(--navy)]">Total</span>
-              <span className="text-lg font-extrabold text-[var(--midnight)]">
-                {formatMoney(product.price)}
-              </span>
-            </div>
-            <AddToCartButton product={product} />
+        )}
+        {!category && (
+          <div className="lg:col-span-2">
+            <h1 className="text-2xl font-bold tracking-tight text-[var(--midnight)] sm:text-4xl">
+              {product.name}
+            </h1>
           </div>
-          <ul className="mt-6 space-y-2 text-sm text-[var(--muted)] sm:mt-8">
-            <li>✓ Authentic timepieces</li>
-            <li>✓ Secure checkout</li>
-            <li>✓ Fast processing from Ujjain, India</li>
-            <li>✓ Easy returns within policy window</li>
-          </ul>
-        </div>
+        )}
+        <ProductPurchasePanel product={product} />
       </div>
 
       {relatedProducts.length > 0 && (

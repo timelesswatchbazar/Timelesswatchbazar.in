@@ -96,9 +96,9 @@ export function BannerCarousel({ banners = [] }: { banners?: BannerRow[] }) {
                   <p className="text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[var(--gold)] sm:text-sm sm:tracking-[0.2em]">
                     Timeless Watch Bazar
                   </p>
-                  <h2 className="mt-2 text-2xl font-bold leading-tight tracking-tight sm:mt-3 sm:text-4xl lg:text-5xl">
+                  <p className="mt-2 text-2xl font-bold leading-tight tracking-tight sm:mt-3 sm:text-4xl lg:text-5xl">
                     {banner.title || "Discover Watches That Define Your Style"}
-                  </h2>
+                  </p>
                   {banner.subtitle && (
                     <p className="mt-2 hidden max-w-md text-sm text-[var(--silver)] sm:mt-3 sm:block sm:text-base">
                       {banner.subtitle}

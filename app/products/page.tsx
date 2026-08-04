@@ -2,9 +2,13 @@ import type { Metadata } from "next";
 import { ProductCard } from "@/components/product-card";
 import { fetchStoreProducts } from "@/lib/catalog";
 
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: "All Products",
-  description: "Explore our full catalog of watches and accessories.",
+  description:
+    "Browse all watches at Timeless Watch Bazar — men's, women's, smart, luxury, and sports watches with INR pricing and delivery across India.",
+  alternates: { canonical: "/products" },
 };
 
 export default async function ProductsPage() {

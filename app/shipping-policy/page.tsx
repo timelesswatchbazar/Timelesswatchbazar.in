@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import { PolicyPage } from "@/components/policy-page";
 
-export const metadata: Metadata = { title: "Shipping Policy" };
+export const metadata: Metadata = {
+  title: "Shipping Policy",
+  description:
+    "Shipping and delivery timelines for Timeless Watch Bazar orders from Ujjain across India.",
+  alternates: { canonical: "/shipping-policy" },
+};
 
 export default function ShippingPolicyPage() {
   return (

@@ -2,9 +2,13 @@ import type { Metadata } from "next";
 import { ProductCard } from "@/components/product-card";
 import { fetchStoreProducts } from "@/lib/catalog";
 
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: "All Categories",
-  description: "Browse every product across all categories in one place.",
+  description:
+    "Browse all watch categories at Timeless Watch Bazar — men's, women's, smart, luxury, sports, and accessories.",
+  alternates: { canonical: "/categories" },
 };
 
 export default async function CategoriesPage() {

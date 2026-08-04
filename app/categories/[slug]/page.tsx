@@ -5,14 +5,19 @@ import { fetchByCategory, fetchCategories } from "@/lib/catalog";
 
 type Props = { params: Promise<{ slug: string }> };
 
+export const revalidate = 60;
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const categories = await fetchCategories();
   const category = categories.find((c) => c.slug === slug);
-  if (!category) return { title: "Category not found" };
+  if (!category) return { title: "Category not found", robots: { index: false } };
   return {
     title: category.name,
-    description: category.description,
+    description:
+      category.description ||
+      `Shop ${category.name} at Timeless Watch Bazar in Ujjain, India.`,
+    alternates: { canonical: `/categories/${category.slug}` },
   };
 }
 

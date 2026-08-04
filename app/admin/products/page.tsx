@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { ImageUploadField } from "@/components/admin/image-upload-field";
+import { ProductVariantsPanel } from "@/components/admin/product-variants-panel";
 import {
   deleteProduct,
   requireAdmin,
@@ -9,10 +10,16 @@ import {
 } from "@/lib/admin/actions";
 import { discountPercent } from "@/lib/database.types";
 import { formatMoney } from "@/lib/money";
-import type { ProductRow } from "@/lib/database.types";
+import type { ProductRow, ProductVariantRow } from "@/lib/database.types";
 
 type Props = {
-  searchParams: Promise<{ edit?: string; error?: string; success?: string; deleted?: string }>;
+  searchParams: Promise<{
+    edit?: string;
+    variant?: string;
+    error?: string;
+    success?: string;
+    deleted?: string;
+  }>;
 };
 
 export default async function AdminProductsPage({ searchParams }: Props) {
@@ -30,23 +37,42 @@ export default async function AdminProductsPage({ searchParams }: Props) {
 
   const editing = (products as ProductRow[] | null)?.find((p) => p.id === params.edit);
 
+  let variants: ProductVariantRow[] = [];
+  if (editing?.id) {
+    const { data: variantRows } = await supabase
+      .from("product_variants")
+      .select("*")
+      .eq("product_id", editing.id)
+      .order("sort_order")
+      .order("color_name");
+    variants = (variantRows as ProductVariantRow[]) || [];
+  }
+
+  const successMessage =
+    params.success === "variant"
+      ? "Color variant saved."
+      : params.success === "variant_deleted"
+        ? "Color variant deleted."
+        : params.deleted
+          ? "Product deleted."
+          : params.success
+            ? "Product saved."
+            : "";
+
   return (
     <AdminShell title="Products">
-      {(params.error || params.success || params.deleted) && (
+      {(params.error || successMessage) && (
         <p
           className={`mb-4 rounded-md px-3 py-2 text-sm ${
             params.error ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-800"
           }`}
         >
-          {params.error
-            ? decodeURIComponent(params.error)
-            : params.deleted
-              ? "Product deleted."
-              : "Product saved."}
+          {params.error ? decodeURIComponent(params.error) : successMessage}
         </p>
       )}
 
       <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
+        <div>
         <section className="h-fit rounded-lg border border-[var(--silver)] bg-white p-5 shadow-sm">
           <h2 className="text-lg font-bold">
             {editing ? "Edit product" : "Add product"}
@@ -151,6 +177,21 @@ export default async function AdminProductsPage({ searchParams }: Props) {
             )}
           </form>
         </section>
+
+        {editing && (
+          <ProductVariantsPanel
+            key={`${editing.id}-${params.variant || "new"}`}
+            productId={editing.id}
+            variants={variants}
+            editingVariantId={params.variant}
+          />
+        )}
+        {!editing && (
+          <p className="mt-3 text-xs text-[var(--muted)]">
+            Save the product first, then open Edit to add dial colors.
+          </p>
+        )}
+        </div>
 
         <section className="overflow-hidden rounded-lg border border-[var(--silver)] bg-white shadow-sm">
           <div className="overflow-x-auto">

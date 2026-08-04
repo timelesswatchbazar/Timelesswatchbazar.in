@@ -30,6 +30,8 @@ export default function CartPage() {
       items: items.map(({ product, quantity }) => ({
         productId: product.id,
         quantity,
+        variantId: product.variantId,
+        colorName: product.colorName,
       })),
     });
 
@@ -76,11 +78,11 @@ export default function CartPage() {
           <div className="space-y-3 sm:space-y-4">
             {items.map(({ product, quantity }) => (
               <div
-                key={product.id}
+                key={`${product.id}::${product.variantId || "default"}`}
                 className="flex gap-3 rounded-md border border-[var(--silver)] bg-white p-3 sm:gap-4 sm:p-4"
               >
                 <Link
-                  href={`/products/${product.slug}`}
+                  href={`/products/${encodeURIComponent(product.slug)}`}
                   className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-[var(--surface)] sm:h-28 sm:w-28"
                 >
                   <Image
@@ -89,16 +91,24 @@ export default function CartPage() {
                     fill
                     className="object-cover"
                     sizes="112px"
+                    unoptimized={product.image?.includes("supabase.co")}
                   />
                 </Link>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-2">
-                    <Link
-                      href={`/products/${product.slug}`}
-                      className="line-clamp-2 text-sm font-semibold text-[var(--midnight)] hover:text-[var(--navy)] sm:text-base"
-                    >
-                      {product.name}
-                    </Link>
+                    <div>
+                      <Link
+                        href={`/products/${encodeURIComponent(product.slug)}`}
+                        className="line-clamp-2 text-sm font-semibold text-[var(--midnight)] hover:text-[var(--navy)] sm:text-base"
+                      >
+                        {product.name}
+                      </Link>
+                      {product.colorName && (
+                        <p className="mt-0.5 text-xs font-medium text-[var(--gold)]">
+                          Color: {product.colorName}
+                        </p>
+                      )}
+                    </div>
                     <p className="shrink-0 text-sm font-extrabold text-[var(--midnight)] sm:text-base">
                       {formatMoney(product.price * quantity)}
                     </p>
@@ -111,7 +121,9 @@ export default function CartPage() {
                       <button
                         type="button"
                         aria-label="Decrease quantity"
-                        onClick={() => updateQuantity(product.id, quantity - 1)}
+                        onClick={() =>
+                          updateQuantity(product.id, quantity - 1, product.variantId)
+                        }
                       >
                         −
                       </button>
@@ -119,7 +131,9 @@ export default function CartPage() {
                       <button
                         type="button"
                         aria-label="Increase quantity"
-                        onClick={() => updateQuantity(product.id, quantity + 1)}
+                        onClick={() =>
+                          updateQuantity(product.id, quantity + 1, product.variantId)
+                        }
                       >
                         +
                       </button>
@@ -127,7 +141,7 @@ export default function CartPage() {
                     <button
                       type="button"
                       className="text-sm font-semibold text-[var(--muted)] hover:text-[var(--midnight)]"
-                      onClick={() => removeItem(product.id)}
+                      onClick={() => removeItem(product.id, product.variantId)}
                     >
                       Remove
                     </button>
