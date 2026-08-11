@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import {
   discountPercent,
@@ -10,51 +10,131 @@ import {
   type StoreVariant,
 } from "@/lib/database.types";
 import { formatMoney } from "@/lib/money";
+import type { Product } from "@/lib/types";
+
+const FALLBACK_IMAGE =
+  "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1200&q=80";
+
+function uniqueImages(urls: Array<string | undefined | null>) {
+  const out: string[] = [];
+  for (const raw of urls) {
+    const url = (raw || "").trim();
+    if (url && !out.includes(url)) out.push(url);
+  }
+  return out;
+}
 
 export function ProductPurchasePanel({ product }: { product: StoreProduct }) {
-  const variants = product.variants || [];
-  const initial = variants.find((v) => v.isDefault) || variants[0] || null;
-  const [selected, setSelected] = useState<StoreVariant | null>(initial);
+  const variants = product.hasVariants ? product.variants || [] : [];
+  const needsVariant = variants.length > 0;
+  const [selectedId, setSelectedId] = useState<string>(
+    () => (variants.find((v) => v.isDefault) || variants[0])?.id || "",
+  );
+
+  const selected: StoreVariant | null = useMemo(
+    () => variants.find((v) => v.id === selectedId) || null,
+    [variants, selectedId],
+  );
+
+  const gallery = useMemo(
+    () =>
+      uniqueImages([
+        selected?.image,
+        product.image,
+        ...(product.gallery || []),
+      ]),
+    [product, selected],
+  );
+
+  const [activeImage, setActiveImage] = useState(
+    () => gallery[0] || FALLBACK_IMAGE,
+  );
+
+  useEffect(() => {
+    setActiveImage(gallery[0] || FALLBACK_IMAGE);
+  }, [selectedId, gallery]);
 
   const pricing = useMemo(
     () => resolveVariantPricing(product, selected),
     [product, selected],
   );
   const off = discountPercent(pricing.actualPrice, pricing.price);
-  const imageSrc =
-    (selected?.image || product.image || "").trim() ||
-    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1200&q=80";
   const stock = selected ? selected.stock : product.stock;
+  const imageSrc = (activeImage || "").trim() || FALLBACK_IMAGE;
+  const variantLabel = (selected?.colorName || "").trim();
+  const canAdd = !needsVariant || Boolean(selected);
+  const outOfStock = canAdd && stock <= 0;
 
-  const cartProduct = {
+  const cartImage =
+    (selected?.image || "").trim() ||
+    (imageSrc !== FALLBACK_IMAGE ? imageSrc : "") ||
+    (product.image || "").trim() ||
+    FALLBACK_IMAGE;
+
+  const cartProduct: Product = {
     id: product.id,
     slug: product.slug,
     name: product.name,
     price: pricing.price,
     actualPrice: pricing.actualPrice,
     category: product.category,
-    image: imageSrc,
+    image: cartImage,
     description: product.description,
     isNew: product.isNew,
     isBestSeller: product.isBestSeller,
     variantId: selected?.id,
-    colorName: selected?.colorName,
+    variantLabel: variantLabel || undefined,
+    colorName: variantLabel || undefined,
   };
 
   return (
     <>
-      <div className="relative aspect-square overflow-hidden rounded-md border border-[var(--silver)] bg-[var(--surface)]">
-        <Image
-          src={imageSrc}
-          alt={
-            selected ? `${product.name} — ${selected.colorName}` : product.name
-          }
-          fill
-          priority
-          className="object-cover"
-          sizes="(max-width: 1024px) 100vw, 50vw"
-          unoptimized={imageSrc.includes("supabase.co")}
-        />
+      <div className="space-y-3">
+        <div className="relative aspect-square overflow-hidden rounded-md border border-[var(--silver)] bg-[var(--surface)]">
+          <Image
+            key={imageSrc}
+            src={imageSrc}
+            alt={
+              variantLabel ? `${product.name} — ${variantLabel}` : product.name
+            }
+            fill
+            priority
+            className="object-cover"
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            unoptimized={imageSrc.includes("supabase.co")}
+          />
+        </div>
+
+        {gallery.length > 1 && (
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {gallery.map((url) => {
+              const active = url === imageSrc;
+              return (
+                <button
+                  key={url}
+                  type="button"
+                  onClick={() => setActiveImage(url)}
+                  aria-label="View product photo"
+                  aria-pressed={active}
+                  className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-md border-2 transition sm:h-20 sm:w-20 ${
+                    active
+                      ? "border-[var(--gold)] ring-2 ring-[var(--gold)]/30"
+                      : "border-[var(--silver)] hover:border-[var(--navy)]"
+                  }`}
+                >
+                  <Image
+                    src={url}
+                    alt=""
+                    fill
+                    className="object-cover"
+                    sizes="80px"
+                    unoptimized={url.includes("supabase.co")}
+                  />
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div className="content-reveal pb-20 sm:pb-0">
@@ -74,41 +154,47 @@ export function ProductPurchasePanel({ product }: { product: StoreProduct }) {
           )}
         </div>
 
-        {variants.length > 0 && (
+        {needsVariant && (
           <div className="mt-5">
             <p className="text-sm font-semibold text-[var(--midnight)]">
-              Color:{" "}
-              <span className="font-bold text-[var(--navy)]">
-                {selected?.colorName || "Select"}
-              </span>
+              Select option
+              {variantLabel ? (
+                <>
+                  :{" "}
+                  <span className="font-bold text-[var(--navy)]">{variantLabel}</span>
+                </>
+              ) : null}
             </p>
-            <div className="mt-3 flex flex-wrap gap-3">
+            <div className="mt-3 flex flex-wrap gap-2">
               {variants.map((variant) => {
-                const active = selected?.id === variant.id;
+                const active = selectedId === variant.id;
                 return (
                   <button
                     key={variant.id}
                     type="button"
-                    title={variant.colorName}
-                    aria-label={variant.colorName}
+                    onClick={() => setSelectedId(variant.id)}
                     aria-pressed={active}
-                    onClick={() => setSelected(variant)}
-                    className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition ${
+                    className={`inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold transition ${
                       active
-                        ? "border-[var(--gold)] ring-2 ring-[var(--gold)]/40"
-                        : "border-[var(--silver)] hover:border-[var(--navy)]"
+                        ? "border-[var(--midnight)] bg-[var(--midnight)] text-white"
+                        : "border-[var(--silver)] bg-white text-[var(--navy)] hover:border-[var(--navy)]"
                     }`}
                   >
                     <span
-                      className="h-7 w-7 rounded-full border border-black/10"
-                      style={{ backgroundColor: variant.colorHex }}
+                      className="h-3.5 w-3.5 rounded-full border border-black/15"
+                      style={{ backgroundColor: variant.colorHex || "#C7A252" }}
                     />
+                    {variant.colorName}
                   </button>
                 );
               })}
             </div>
             <p className="mt-2 text-xs text-[var(--muted)]">
-              {stock > 0 ? `${stock} in stock` : "Out of stock"}
+              {selected
+                ? stock > 0
+                  ? `${stock} in stock`
+                  : "Out of stock"
+                : "Please select a variant"}
             </p>
           </div>
         )}
@@ -126,16 +212,25 @@ export function ProductPurchasePanel({ product }: { product: StoreProduct }) {
           </div>
           <AddToCartButton
             product={cartProduct}
-            label={stock > 0 ? "Add to Cart" : "Out of stock"}
-            className={`btn-soft ${stock <= 0 ? "pointer-events-none opacity-50" : ""}`}
+            disabled={!canAdd || outOfStock}
+            label={
+              !canAdd
+                ? "Select a variant"
+                : outOfStock
+                  ? "Out of stock"
+                  : variantLabel
+                    ? `Add to Cart — ${variantLabel}`
+                    : "Add to Cart"
+            }
+            className={`btn-soft ${!canAdd || outOfStock ? "pointer-events-none opacity-50" : ""}`}
           />
         </div>
 
         <ul className="mt-6 space-y-2 text-sm text-[var(--muted)] sm:mt-8">
           <li>✓ Authentic timepieces</li>
           <li>✓ Secure checkout</li>
-          <li>✓ Fast processing from Ujjain, India</li>
-          <li>✓ Easy returns within policy window</li>
+          <li>✓ Fast processing across India</li>
+          <li>✓ Cash on delivery available</li>
         </ul>
       </div>
     </>

@@ -4,7 +4,7 @@ import { ScrollReveal } from "@/components/scroll-reveal";
 export const metadata: Metadata = {
   title: "About Us",
   description:
-    "Learn about Timeless Watch Bazar in Ujjain, Madhya Pradesh — quality men's, women's, smart, and luxury watches at competitive INR prices.",
+    "Learn about Timeless Watch Bazar — quality men's, women's, smart, and luxury watches at competitive INR prices across India.",
   alternates: { canonical: "/about" },
 };
 
@@ -17,11 +17,10 @@ export default function AboutPage() {
           Discover Timeless Watches At Amazing Prices
         </h1>
         <p className="mt-4 max-w-3xl text-base leading-7 text-[var(--muted)] sm:mt-6 sm:text-lg sm:leading-8">
-          Based in Ujjain, Madhya Pradesh, Timeless Watch Bazar is your trusted
-          destination for elegant, practical, and trending watches that elevate everyday
-          style. From classic dress watches and luxury automatics to smart wearables and
-          sports divers, we carefully select pieces that offer quality, value, and lasting
-          craftsmanship.
+          Timeless Watch Bazar is your trusted destination for elegant, practical, and
+          trending watches that elevate everyday style. From classic dress watches and
+          luxury automatics to smart wearables and sports divers, we carefully select
+          pieces that offer quality, value, and lasting craftsmanship.
         </p>
       </ScrollReveal>
 

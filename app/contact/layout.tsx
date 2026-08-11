@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Contact Us",
   description:
-    "Contact Timeless Watch Bazar in Ujjain, Madhya Pradesh. Call, WhatsApp, or send a message for watch orders and support.",
+    "Contact Timeless Watch Bazar in India. Call, WhatsApp, or send a message for watch orders and support.",
   alternates: { canonical: "/contact" },
 };
 

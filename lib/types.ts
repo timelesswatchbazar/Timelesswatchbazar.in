@@ -26,8 +26,12 @@ export type Product = {
   description: string;
   isNew?: boolean;
   isBestSeller?: boolean;
+  hasVariants?: boolean;
   variants?: ProductVariant[];
   /** Selected when adding to cart */
   variantId?: string;
+  /** Display label e.g. Black, Silver, Size M */
+  variantLabel?: string;
+  /** @deprecated use variantLabel */
   colorName?: string;
 };

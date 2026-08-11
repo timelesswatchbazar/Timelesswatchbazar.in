@@ -123,15 +123,41 @@ export async function saveProduct(formData: FormData) {
   const isNewArrival = formData.get("is_new_arrival") === "on";
   const isBestSeller = formData.get("is_best_seller") === "on";
   const isActive = formData.get("is_active") === "on";
+  const hasVariants = formData.get("has_variants") === "yes";
 
   if (!name || actualPrice < 0 || salePrice < 0 || salePrice > actualPrice) {
     redirect("/admin/products?error=invalid_product");
   }
 
+  let slug = slugify(slugInput || name);
+  if (!slug) {
+    redirect("/admin/products?error=invalid_slug");
+  }
+
+  // Avoid unique-slug collisions when adding a similar product (same name).
+  {
+    let query = supabase.from("products").select("id").eq("slug", slug).limit(1);
+    if (id) query = query.neq("id", id);
+    const { data: existing } = await query.maybeSingle();
+    if (existing) {
+      let suffix = 2;
+      while (suffix < 50) {
+        const candidate = `${slug}-${suffix}`;
+        let check = supabase.from("products").select("id").eq("slug", candidate).limit(1);
+        if (id) check = check.neq("id", id);
+        const { data: taken } = await check.maybeSingle();
+        if (!taken) {
+          slug = candidate;
+          break;
+        }
+        suffix += 1;
+      }
+    }
+  }
+
   const payload = {
     name,
-    // Always normalize so spaces/special chars never break /products/[slug]
-    slug: slugify(slugInput || name),
+    slug,
     description,
     category_id: categoryId,
     image_url: imageUrl,
@@ -142,18 +168,26 @@ export async function saveProduct(formData: FormData) {
     is_new_arrival: isNewArrival,
     is_best_seller: isBestSeller,
     is_active: isActive,
+    has_variants: hasVariants,
   };
 
   if (id) {
     const { error } = await supabase.from("products").update(payload).eq("id", id);
-    if (error) redirect(`/admin/products?error=${encodeURIComponent(error.message)}`);
-  } else {
-    const { error } = await supabase.from("products").insert(payload);
-    if (error) redirect(`/admin/products?error=${encodeURIComponent(error.message)}`);
+    if (error) redirect(`/admin/products?edit=${id}&error=${encodeURIComponent(error.message)}`);
+    revalidateStorefront(["/admin/products"]);
+    redirect(`/admin/products?edit=${id}&success=1`);
   }
 
+  const { data: created, error } = await supabase
+    .from("products")
+    .insert(payload)
+    .select("id")
+    .single();
+
+  if (error) redirect(`/admin/products?error=${encodeURIComponent(error.message)}`);
+
   revalidateStorefront(["/admin/products"]);
-  redirect("/admin/products?success=1");
+  redirect(`/admin/products?edit=${created.id}&success=1`);
 }
 
 export async function deleteProduct(formData: FormData) {
@@ -323,6 +357,19 @@ export async function saveProductVariant(formData: FormData) {
     redirect(`/admin/products?edit=${productId}&error=variant_name_required`);
   }
 
+  // Never allow a missing/deleted parent — variants must attach to an existing product.
+  const { data: parent, error: parentError } = await supabase
+    .from("products")
+    .select("id")
+    .eq("id", productId)
+    .maybeSingle();
+
+  if (parentError || !parent) {
+    redirect(
+      `/admin/products?error=${encodeURIComponent("Product not found. Variant was not saved.")}`,
+    );
+  }
+
   if (
     (actualPrice != null && actualPrice < 0) ||
     (salePrice != null && salePrice < 0) ||
@@ -352,7 +399,12 @@ export async function saveProductVariant(formData: FormData) {
   };
 
   if (id) {
-    const { error } = await supabase.from("product_variants").update(payload).eq("id", id);
+    // Only update this variant row — never touch the parent product.
+    const { error } = await supabase
+      .from("product_variants")
+      .update(payload)
+      .eq("id", id)
+      .eq("product_id", productId);
     if (error) {
       redirect(`/admin/products?edit=${productId}&error=${encodeURIComponent(error.message)}`);
     }

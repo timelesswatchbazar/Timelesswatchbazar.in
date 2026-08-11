@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: category.name,
     description:
       category.description ||
-      `Shop ${category.name} at Timeless Watch Bazar in Ujjain, India.`,
+      `Shop ${category.name} at Timeless Watch Bazar in India.`,
     alternates: { canonical: `/categories/${category.slug}` },
   };
 }

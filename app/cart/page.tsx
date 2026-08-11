@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
-import { useCart } from "@/components/cart-context";
+import { getCartVariantLabel, useCart } from "@/components/cart-context";
 import { formatMoney } from "@/lib/money";
 import { placeOrder } from "@/lib/checkout";
 
@@ -27,12 +27,16 @@ export default function CartPage() {
       shippingAddress: String(form.get("shippingAddress") || ""),
       city: String(form.get("city") || ""),
       notes: String(form.get("notes") || ""),
-      items: items.map(({ product, quantity }) => ({
-        productId: product.id,
-        quantity,
-        variantId: product.variantId,
-        colorName: product.colorName,
-      })),
+      items: items.map(({ product, quantity }) => {
+        const variantLabel = getCartVariantLabel(product);
+        return {
+          productId: product.id,
+          quantity,
+          variantId: product.variantId,
+          colorName: variantLabel,
+          imageUrl: product.image,
+        };
+      }),
     });
 
     setSubmitting(false);
@@ -76,79 +80,90 @@ export default function CartPage() {
       ) : !success ? (
         <div className="mt-6 grid gap-6 sm:mt-8 lg:grid-cols-[1fr_360px] lg:gap-8">
           <div className="space-y-3 sm:space-y-4">
-            {items.map(({ product, quantity }) => (
-              <div
-                key={`${product.id}::${product.variantId || "default"}`}
-                className="flex gap-3 rounded-md border border-[var(--silver)] bg-white p-3 sm:gap-4 sm:p-4"
-              >
-                <Link
-                  href={`/products/${encodeURIComponent(product.slug)}`}
-                  className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-[var(--surface)] sm:h-28 sm:w-28"
+            {items.map(({ product, quantity }) => {
+              const variantLabel = getCartVariantLabel(product);
+              return (
+                <div
+                  key={`${product.id}::${product.variantId || "default"}`}
+                  className="flex gap-3 rounded-md border border-[var(--silver)] bg-white p-3 sm:gap-4 sm:p-4"
                 >
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    fill
-                    className="object-cover"
-                    sizes="112px"
-                    unoptimized={product.image?.includes("supabase.co")}
-                  />
-                </Link>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <Link
-                        href={`/products/${encodeURIComponent(product.slug)}`}
-                        className="line-clamp-2 text-sm font-semibold text-[var(--midnight)] hover:text-[var(--navy)] sm:text-base"
-                      >
-                        {product.name}
-                      </Link>
-                      {product.colorName && (
-                        <p className="mt-0.5 text-xs font-medium text-[var(--gold)]">
-                          Color: {product.colorName}
-                        </p>
-                      )}
+                  <Link
+                    href={`/products/${encodeURIComponent(product.slug)}`}
+                    className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-[var(--surface)] sm:h-28 sm:w-28"
+                  >
+                    <Image
+                      src={
+                        product.image?.trim() ||
+                        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80"
+                      }
+                      alt={
+                        variantLabel
+                          ? `${product.name} — ${variantLabel}`
+                          : product.name
+                      }
+                      fill
+                      className="object-cover"
+                      sizes="112px"
+                      unoptimized={Boolean(product.image?.includes("supabase.co"))}
+                    />
+                  </Link>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <Link
+                          href={`/products/${encodeURIComponent(product.slug)}`}
+                          className="line-clamp-2 text-sm font-semibold text-[var(--midnight)] hover:text-[var(--navy)] sm:text-base"
+                        >
+                          {product.name}
+                        </Link>
+                        {variantLabel ? (
+                          <p className="mt-1.5 inline-flex items-center rounded-md bg-[var(--midnight)] px-2 py-0.5 text-xs font-bold text-white">
+                            Variant: {variantLabel}
+                          </p>
+                        ) : null}
+                      </div>
+                      <p className="shrink-0 text-sm font-extrabold text-[var(--midnight)] sm:text-base">
+                        {formatMoney(product.price * quantity)}
+                      </p>
                     </div>
-                    <p className="shrink-0 text-sm font-extrabold text-[var(--midnight)] sm:text-base">
-                      {formatMoney(product.price * quantity)}
+                    <p className="mt-1 text-sm font-medium text-[var(--muted)]">
+                      {formatMoney(product.price)}
+                      {variantLabel ? ` · ${variantLabel}` : ""}
                     </p>
-                  </div>
-                  <p className="mt-1 text-sm font-medium text-[var(--muted)]">
-                    {formatMoney(product.price)}
-                  </p>
-                  <div className="mt-3 flex flex-wrap items-center gap-3">
-                    <div className="quantity-control">
+                    <div className="mt-3 flex flex-wrap items-center gap-3">
+                      <div className="quantity-control">
+                        <button
+                          type="button"
+                          aria-label="Decrease quantity"
+                          onClick={() =>
+                            updateQuantity(product.id, quantity - 1, product.variantId)
+                          }
+                        >
+                          −
+                        </button>
+                        <input readOnly value={quantity} aria-label="Quantity" />
+                        <button
+                          type="button"
+                          aria-label="Increase quantity"
+                          onClick={() =>
+                            updateQuantity(product.id, quantity + 1, product.variantId)
+                          }
+                        >
+                          +
+                        </button>
+                      </div>
                       <button
                         type="button"
-                        aria-label="Decrease quantity"
-                        onClick={() =>
-                          updateQuantity(product.id, quantity - 1, product.variantId)
-                        }
+                        className="text-sm font-semibold text-[var(--muted)] hover:text-[var(--midnight)]"
+                        onClick={() => removeItem(product.id, product.variantId)}
                       >
-                        −
-                      </button>
-                      <input readOnly value={quantity} aria-label="Quantity" />
-                      <button
-                        type="button"
-                        aria-label="Increase quantity"
-                        onClick={() =>
-                          updateQuantity(product.id, quantity + 1, product.variantId)
-                        }
-                      >
-                        +
+                        Remove
                       </button>
                     </div>
-                    <button
-                      type="button"
-                      className="text-sm font-semibold text-[var(--muted)] hover:text-[var(--midnight)]"
-                      onClick={() => removeItem(product.id, product.variantId)}
-                    >
-                      Remove
-                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             <button
               type="button"
               onClick={clearCart}
@@ -161,6 +176,30 @@ export default function CartPage() {
           <aside className="h-fit space-y-4">
             <div className="rounded-md border border-[var(--silver)] bg-white p-5 sm:sticky sm:top-24 sm:p-6">
               <h2 className="text-lg font-bold text-[var(--midnight)]">Order Summary</h2>
+              <ul className="mt-4 space-y-2 border-b border-[var(--silver)] pb-4">
+                {items.map(({ product, quantity }) => {
+                  const variantLabel = getCartVariantLabel(product);
+                  return (
+                    <li
+                      key={`summary-${product.id}::${product.variantId || "default"}`}
+                      className="flex items-start justify-between gap-3 text-sm"
+                    >
+                      <span className="min-w-0 text-[var(--navy)]">
+                        <span className="font-medium">{product.name}</span>
+                        {variantLabel ? (
+                          <span className="mt-0.5 block text-xs font-semibold text-[var(--midnight)]">
+                            Variant: {variantLabel}
+                          </span>
+                        ) : null}
+                        <span className="text-xs text-[var(--muted)]"> × {quantity}</span>
+                      </span>
+                      <span className="shrink-0 font-semibold">
+                        {formatMoney(product.price * quantity)}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
               <div className="mt-4 flex items-center justify-between text-sm">
                 <span className="text-[var(--muted)]">Subtotal</span>
                 <span className="font-bold">{formatMoney(subtotal)}</span>

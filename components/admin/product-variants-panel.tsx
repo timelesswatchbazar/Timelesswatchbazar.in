@@ -7,10 +7,12 @@ import type { ProductVariantRow } from "@/lib/database.types";
 
 export function ProductVariantsPanel({
   productId,
+  productStock = 0,
   variants,
   editingVariantId,
 }: {
   productId: string;
+  productStock?: number;
   variants: ProductVariantRow[];
   editingVariantId?: string;
 }) {
@@ -19,10 +21,10 @@ export function ProductVariantsPanel({
 
   return (
     <section className="mt-6 rounded-lg border border-[var(--silver)] bg-white p-5 shadow-sm">
-      <h2 className="text-lg font-bold text-[var(--midnight)]">Colors / variants</h2>
+      <h2 className="text-lg font-bold text-[var(--midnight)]">Product variants</h2>
       <p className="mt-1 text-sm text-[var(--muted)]">
-        Add dial colors (e.g. White Dial, Black Dial). Each can have its own image and
-        stock. Leave prices empty to use the product price.
+        Add options like <strong>Black</strong>, <strong>Silver</strong>, or sizes.
+        Optional image/price per variant — leave prices empty to use the product price.
       </p>
 
       <form action={saveProductVariant} className="mt-4 space-y-3 border-b border-[var(--silver)] pb-5">
@@ -32,17 +34,17 @@ export function ProductVariantsPanel({
 
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="mb-1 block text-sm font-semibold">Color name</label>
+            <label className="mb-1 block text-sm font-semibold">Variant name</label>
             <input
               name="color_name"
               required
               defaultValue={editing?.color_name}
-              placeholder="White Dial"
+              placeholder="Black, Silver, Size M…"
               className="w-full rounded-md border border-[var(--silver)] px-3 py-2 text-sm"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-semibold">Swatch color</label>
+            <label className="mb-1 block text-sm font-semibold">Swatch (optional)</label>
             <div className="flex items-center gap-2">
               <input
                 type="color"
@@ -68,7 +70,7 @@ export function ProductVariantsPanel({
           name="image_url"
           bucket="product-images"
           defaultValue={editing?.image_url}
-          label="Variant image"
+          label="Variant image (optional)"
         />
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -78,7 +80,9 @@ export function ProductVariantsPanel({
               name="stock"
               type="number"
               min={0}
-              defaultValue={editing ? String(editing.stock) : "0"}
+              defaultValue={
+                editing ? String(editing.stock) : String(Math.max(0, productStock))
+              }
               className="w-full rounded-md border border-[var(--silver)] px-3 py-2 text-sm"
             />
           </div>
@@ -119,7 +123,7 @@ export function ProductVariantsPanel({
 
         <label className="flex items-center gap-2 text-sm font-medium">
           <input type="checkbox" name="is_default" defaultChecked={editing?.is_default ?? false} />
-          Default color (shown first)
+          Default option
         </label>
         <label className="flex items-center gap-2 text-sm font-medium">
           <input type="checkbox" name="is_active" defaultChecked={editing?.is_active ?? true} />
@@ -128,14 +132,14 @@ export function ProductVariantsPanel({
 
         <div className="flex flex-wrap items-center gap-3">
           <button type="submit" className="btn-soft">
-            {editing ? "Update color" : "Add color"}
+            {editing ? "Update variant" : "Add variant"}
           </button>
           {editing && (
             <a
               href={`/admin/products?edit=${productId}`}
               className="text-sm font-semibold text-[var(--navy)]"
             >
-              Cancel color edit
+              Cancel
             </a>
           )}
         </div>
@@ -143,7 +147,7 @@ export function ProductVariantsPanel({
 
       <div className="mt-4 space-y-3">
         {variants.length === 0 && (
-          <p className="text-sm text-[var(--muted)]">No colors yet for this product.</p>
+          <p className="text-sm text-[var(--muted)]">No variants yet. Add your first option above.</p>
         )}
         {variants.map((variant) => (
           <div
@@ -182,7 +186,14 @@ export function ProductVariantsPanel({
               >
                 Edit
               </a>
-              <form action={deleteProductVariant}>
+              <form
+                action={deleteProductVariant}
+                onSubmit={(e) => {
+                  if (!window.confirm(`Delete variant "${variant.color_name}"?`)) {
+                    e.preventDefault();
+                  }
+                }}
+              >
                 <input type="hidden" name="id" value={variant.id} />
                 <input type="hidden" name="product_id" value={productId} />
                 <button type="submit" className="text-sm font-semibold text-red-600">

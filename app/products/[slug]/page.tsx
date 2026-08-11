@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const description =
     product.description?.slice(0, 155) ||
-    `Buy ${product.name} online at ${SITE_NAME}, Ujjain, India.`;
+    `Buy ${product.name} online at ${SITE_NAME}, India.`;
 
   return {
     title: product.name,

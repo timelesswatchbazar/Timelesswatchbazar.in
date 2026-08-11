@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { DeleteProductButton } from "@/components/admin/delete-product-button";
 import { ImageUploadField } from "@/components/admin/image-upload-field";
 import { ProductVariantsPanel } from "@/components/admin/product-variants-panel";
 import {
-  deleteProduct,
   requireAdmin,
   saveProduct,
   toggleProductFlag,
@@ -167,6 +167,38 @@ export default async function AdminProductsPage({ searchParams }: Props) {
               />
               Active (visible in store)
             </label>
+
+            <fieldset className="rounded-md border border-[var(--silver)] bg-[var(--surface)] p-3">
+              <legend className="px-1 text-sm font-semibold text-[var(--midnight)]">
+                Do you want to add variants?
+              </legend>
+              <p className="mb-2 text-xs text-[var(--muted)]">
+                Optional. Use for colors, sizes, etc. (e.g. Black, Silver).
+              </p>
+              <div className="flex flex-wrap gap-4 text-sm font-medium">
+                <label className="inline-flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="has_variants"
+                    value="yes"
+                    defaultChecked={Boolean(editing?.has_variants) || variants.length > 0}
+                  />
+                  Yes
+                </label>
+                <label className="inline-flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="has_variants"
+                    value="no"
+                    defaultChecked={
+                      !(Boolean(editing?.has_variants) || variants.length > 0)
+                    }
+                  />
+                  No
+                </label>
+              </div>
+            </fieldset>
+
             <button type="submit" className="btn-soft">
               {editing ? "Update product" : "Add product"}
             </button>
@@ -178,17 +210,24 @@ export default async function AdminProductsPage({ searchParams }: Props) {
           </form>
         </section>
 
-        {editing && (
+        {editing && (editing.has_variants || variants.length > 0) && (
           <ProductVariantsPanel
             key={`${editing.id}-${params.variant || "new"}`}
             productId={editing.id}
+            productStock={Number(editing.stock) || 0}
             variants={variants}
             editingVariantId={params.variant}
           />
         )}
+        {editing && !(editing.has_variants || variants.length > 0) && (
+          <p className="mt-3 text-xs text-[var(--muted)]">
+            Variants are off for this product. Choose <strong>Yes</strong> above and
+            click Update product to add colors or sizes.
+          </p>
+        )}
         {!editing && (
           <p className="mt-3 text-xs text-[var(--muted)]">
-            Save the product first, then open Edit to add dial colors.
+            Choose Yes for variants if needed, then save. You can add options after saving.
           </p>
         )}
         </div>
@@ -271,15 +310,10 @@ export default async function AdminProductsPage({ searchParams }: Props) {
                           >
                             Edit
                           </Link>
-                          <form action={deleteProduct}>
-                            <input type="hidden" name="id" value={product.id} />
-                            <button
-                              type="submit"
-                              className="text-sm font-semibold text-red-600"
-                            >
-                              Delete
-                            </button>
-                          </form>
+                          <DeleteProductButton
+                            productId={product.id}
+                            productName={product.name}
+                          />
                         </div>
                       </td>
                     </tr>

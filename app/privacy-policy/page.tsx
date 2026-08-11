@@ -22,7 +22,7 @@ export default function PrivacyPolicyPage() {
       </p>
       <p>
         Payment details are processed through secure payment providers. For questions
-        about this policy, contact info@timelesswatchbazar.com.
+        about this policy, contact timelesswatchbazar@gmail.com.
       </p>
     </PolicyPage>
   );

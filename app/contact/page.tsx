@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import { SITE_EMAIL, SITE_PHONE_DISPLAY, SITE_PHONE_E164 } from "@/lib/site";
 
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
@@ -71,17 +72,20 @@ export default function ContactPage() {
             <div>
               <p className="text-sm font-semibold text-[var(--muted)]">Phone / WhatsApp</p>
               <a
-                href="tel:+919876543210"
+                href={`tel:${SITE_PHONE_E164}`}
                 className="mt-1 block text-lg font-bold text-[var(--gold)] hover:text-[var(--gold-hover)]"
               >
-                +91 98765 43210
+                {SITE_PHONE_DISPLAY}
               </a>
             </div>
             <div>
               <p className="text-sm font-semibold text-[var(--muted)]">Email</p>
-              <p className="mt-1 text-lg font-semibold text-[var(--midnight)]">
-                info@timelesswatchbazar.com
-              </p>
+              <a
+                href={`mailto:${SITE_EMAIL}`}
+                className="mt-1 block text-lg font-semibold text-[var(--midnight)] hover:text-[var(--navy)]"
+              >
+                {SITE_EMAIL}
+              </a>
             </div>
             <div>
               <p className="text-sm font-semibold text-[var(--muted)]">Working hours</p>
@@ -89,7 +93,7 @@ export default function ContactPage() {
             </div>
             <div>
               <p className="text-sm font-semibold text-[var(--muted)]">Location</p>
-              <p className="mt-1 text-[var(--navy)]">Ujjain, Madhya Pradesh, India</p>
+              <p className="mt-1 text-[var(--navy)]">India</p>
             </div>
           </div>
         </ScrollReveal>

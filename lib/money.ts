@@ -1,4 +1,4 @@
-/** Format store prices in Indian Rupees (Ujjain / India). */
+/** Format store prices in Indian Rupees (INR). */
 export function formatMoney(amount: number) {
   const value = Number(amount);
   return new Intl.NumberFormat("en-IN", {

@@ -9,6 +9,8 @@ export type CheckoutItem = {
   quantity: number;
   variantId?: string;
   colorName?: string;
+  /** Snapshot from cart (selected variant image) */
+  imageUrl?: string;
 };
 
 export async function placeOrder(input: {
@@ -79,12 +81,16 @@ export async function placeOrder(input: {
       const qty = Math.max(1, item.quantity);
       const colorName =
         (variant?.color_name as string | undefined) || item.colorName || "";
+      const lineImage =
+        (item.imageUrl || "").trim() ||
+        ((variant?.image_url as string | undefined) || "").trim() ||
+        product.image_url;
 
       return {
         product_id: product.id,
         product_name: colorName ? `${product.name} — ${colorName}` : product.name,
         product_slug: product.slug,
-        image_url: (variant?.image_url as string) || product.image_url,
+        image_url: lineImage,
         unit_price: unit,
         quantity: qty,
         line_total: unit * qty,

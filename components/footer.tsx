@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FacebookIcon, InstagramIcon } from "@/components/icons";
+import { SITE_EMAIL, SITE_PHONE_DISPLAY, SITE_PHONE_E164 } from "@/lib/site";
 
 export function Footer() {
   return (
@@ -71,12 +72,6 @@ export function Footer() {
             </Link>
             <Link
               className="w-fit text-sm text-[var(--silver)] transition hover:text-white"
-              href="/return-policy"
-            >
-              Return Policy
-            </Link>
-            <Link
-              className="w-fit text-sm text-[var(--silver)] transition hover:text-white"
               href="/faq"
             >
               FAQ
@@ -94,15 +89,17 @@ export function Footer() {
             Contact
           </h2>
           <div className="mt-4 space-y-3 text-sm text-[var(--silver)]">
-            <p>info@timelesswatchbazar.com</p>
+            <a href={`mailto:${SITE_EMAIL}`} className="block w-fit transition hover:text-white">
+              {SITE_EMAIL}
+            </a>
             <a
-              href="tel:+919876543210"
+              href={`tel:${SITE_PHONE_E164}`}
               className="block w-fit transition hover:text-white"
             >
-              +91 98765 43210
+              {SITE_PHONE_DISPLAY}
             </a>
             <p>Mon to Sat, 10:00 AM - 7:00 PM</p>
-            <p>Ujjain, Madhya Pradesh, India</p>
+            <p>India</p>
           </div>
         </div>
         <div>

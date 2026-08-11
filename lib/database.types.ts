@@ -39,6 +39,7 @@ export type ProductRow = {
   is_new_arrival: boolean;
   is_best_seller: boolean;
   is_active: boolean;
+  has_variants?: boolean;
   sort_order: number;
   created_at: string;
   updated_at: string;
@@ -137,6 +138,7 @@ export type StoreProduct = {
   name: string;
   description: string;
   image: string;
+  gallery: string[];
   category: string;
   categoryName?: string;
   actualPrice: number;
@@ -144,6 +146,7 @@ export type StoreProduct = {
   stock: number;
   isNew?: boolean;
   isBestSeller?: boolean;
+  hasVariants?: boolean;
   variants?: StoreVariant[];
 };
 
@@ -152,7 +155,7 @@ export function mapVariantRow(row: ProductVariantRow): StoreVariant {
     id: row.id,
     colorName: row.color_name,
     colorHex: row.color_hex || "#C7A252",
-    image: row.image_url,
+    image: (row.image_url || "").trim(),
     stock: row.stock,
     actualPrice: row.actual_price == null ? null : Number(row.actual_price),
     price: row.sale_price == null ? null : Number(row.sale_price),
@@ -161,27 +164,39 @@ export function mapVariantRow(row: ProductVariantRow): StoreVariant {
 }
 
 export function mapProductRow(row: ProductRow): StoreProduct {
-  const variants = (row.product_variants || [])
+  const allVariants = (row.product_variants || [])
     .filter((v) => v.is_active)
     .sort((a, b) => a.sort_order - b.sort_order || a.color_name.localeCompare(b.color_name))
     .map(mapVariantRow);
 
+  // Only expose variants when the product is flagged for them (or legacy rows exist).
+  const hasVariants = Boolean(row.has_variants) || allVariants.length > 0;
+  const variants = hasVariants ? allVariants : [];
+
   const defaultVariant =
     variants.find((v) => v.isDefault) || variants[0] || null;
+
+  const gallery = Array.isArray(row.gallery)
+    ? row.gallery.map((g) => String(g || "").trim()).filter(Boolean)
+    : [];
+
+  const variantStockTotal = variants.reduce((sum, v) => sum + v.stock, 0);
 
   return {
     id: row.id,
     slug: row.slug,
     name: row.name,
     description: row.description,
-    image: defaultVariant?.image || row.image_url,
+    image: (row.image_url || "").trim() || defaultVariant?.image || "",
+    gallery,
     category: row.categories?.slug ?? "",
     categoryName: row.categories?.name,
     actualPrice: Number(row.actual_price),
     price: Number(row.sale_price),
-    stock: defaultVariant ? defaultVariant.stock : row.stock,
+    stock: variants.length > 0 ? variantStockTotal : row.stock,
     isNew: row.is_new_arrival,
     isBestSeller: row.is_best_seller,
+    hasVariants,
     variants,
   };
 }

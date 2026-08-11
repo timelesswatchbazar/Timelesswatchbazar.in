@@ -12,12 +12,12 @@ export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: {
-    absolute: `${SITE_NAME} | Buy Watches Online in Ujjain, India`,
+    absolute: `${SITE_NAME} | Buy Watches Online in India`,
   },
   description: SITE_DESCRIPTION,
   alternates: { canonical: "/" },
   openGraph: {
-    title: `${SITE_NAME} | Buy Watches Online in Ujjain, India`,
+    title: `${SITE_NAME} | Buy Watches Online in India`,
     description: SITE_DESCRIPTION,
     url: SITE_URL,
     type: "website",
@@ -44,7 +44,7 @@ export default async function HomePage() {
     <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
       <h1 className="sr-only">
         Timeless Watch Bazar — Buy men&apos;s, women&apos;s, smart, and luxury watches online
-        in Ujjain, India
+        in India
       </h1>
       <BannerCarousel banners={banners} />
       <ProductCarousel

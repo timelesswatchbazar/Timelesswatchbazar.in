@@ -5,7 +5,7 @@ import { GoogleAnalytics } from "@/components/google-analytics";
 import { JsonLd } from "@/components/json-ld";
 import { StoreShell } from "@/components/store-shell";
 import { fetchCategories } from "@/lib/catalog";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
+import { SITE_DESCRIPTION, SITE_EMAIL, SITE_NAME, SITE_PHONE_E164, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -19,18 +19,17 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME} | Watches in Ujjain, India`,
+    default: `${SITE_NAME} | Watches Online in India`,
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
   keywords: [
-    "watches Ujjain",
     "buy watches India",
     "men's watches",
     "women's watches",
     "smart watches",
     "luxury watches",
-    "watch store Madhya Pradesh",
+    "watch store India",
     "Timeless Watch Bazar",
     "COD watches India",
   ],
@@ -43,12 +42,12 @@ export const metadata: Metadata = {
     locale: "en_IN",
     url: SITE_URL,
     siteName: SITE_NAME,
-    title: `${SITE_NAME} | Watches in Ujjain, India`,
+    title: `${SITE_NAME} | Watches Online in India`,
     description: SITE_DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_NAME} | Watches in Ujjain, India`,
+    title: `${SITE_NAME} | Watches Online in India`,
     description: SITE_DESCRIPTION,
   },
   robots: {
@@ -92,8 +91,6 @@ export default async function RootLayout({
     image: `${SITE_URL}/icon.svg`,
     address: {
       "@type": "PostalAddress",
-      addressLocality: "Ujjain",
-      addressRegion: "Madhya Pradesh",
       addressCountry: "IN",
     },
     areaServed: {
@@ -102,8 +99,8 @@ export default async function RootLayout({
     },
     priceRange: "₹₹",
     openingHours: "Mo-Sa 10:00-19:00",
-    email: "info@timelesswatchbazar.com",
-    telephone: "+919876543210",
+    email: SITE_EMAIL,
+    telephone: SITE_PHONE_E164,
   };
 
   return (
