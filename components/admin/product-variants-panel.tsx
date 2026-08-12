@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ImageUploadField } from "@/components/admin/image-upload-field";
+import { AdminSubmitButton } from "@/components/admin/submit-button";
 import { deleteProductVariant, saveProductVariant } from "@/lib/admin/actions";
 import type { ProductVariantRow } from "@/lib/database.types";
 
@@ -135,9 +136,10 @@ export function ProductVariantsPanel({
         </label>
 
         <div className="flex flex-wrap items-center gap-3">
-          <button type="submit" className="btn-soft">
-            {editing ? "Update variant" : "Add variant"}
-          </button>
+          <AdminSubmitButton
+            label={editing ? "Update variant" : "Add variant"}
+            pendingLabel={editing ? "Updating…" : "Adding variant…"}
+          />
           {editing && (
             <a
               href={`/admin/products?edit=${productId}`}

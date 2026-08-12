@@ -43,14 +43,14 @@ export function AdminShell({
         </div>
       </div>
 
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 lg:grid-cols-[220px_1fr] sm:px-6">
-        <aside className="h-fit rounded-lg border border-[var(--silver)] bg-white p-3 shadow-sm">
-          <nav className="flex flex-col gap-1">
+      <div className="mx-auto grid max-w-7xl gap-4 px-4 py-4 sm:gap-6 sm:px-6 sm:py-6 lg:grid-cols-[200px_1fr]">
+        <aside className="h-fit rounded-lg border border-[var(--silver)] bg-white p-2 shadow-sm sm:p-3">
+          <nav className="flex gap-1 overflow-x-auto lg:flex-col">
             {links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="rounded-md px-3 py-2 text-sm font-semibold text-[var(--navy)] transition hover:bg-[var(--surface)] hover:text-[var(--midnight)]"
+                className="whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold text-[var(--navy)] transition hover:bg-[var(--surface)] hover:text-[var(--midnight)]"
               >
                 {link.label}
               </Link>

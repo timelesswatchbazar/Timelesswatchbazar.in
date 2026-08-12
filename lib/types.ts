@@ -1,7 +1,7 @@
 export type Category = {
   slug: string;
   name: string;
-  description: string;
+  description?: string;
 };
 
 export type ProductVariant = {

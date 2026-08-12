@@ -18,9 +18,35 @@ import {
 import type { Category } from "@/lib/types";
 
 const PRODUCT_SELECT = `
-  *,
+  id,
+  slug,
+  name,
+  description,
+  image_url,
+  actual_price,
+  sale_price,
+  stock,
+  is_new_arrival,
+  is_best_seller,
+  is_active,
+  has_variants,
+  sort_order,
+  created_at,
+  category_id,
   categories ( id, name, slug ),
-  product_variants ( * )
+  product_variants (
+    id,
+    product_id,
+    color_name,
+    color_hex,
+    image_url,
+    stock,
+    sale_price,
+    actual_price,
+    is_default,
+    is_active,
+    sort_order
+  )
 `;
 
 function toLocalProduct(
@@ -72,7 +98,7 @@ const loadProductsFromSupabase = unstable_cache(
 
     return mapRows(data as ProductRow[]);
   },
-  ["store-products-v4"],
+  ["store-products-v5"],
   { revalidate: 60, tags: ["store-products", "store-catalog"] },
 );
 
@@ -111,14 +137,18 @@ const loadCategoriesFromSupabase = unstable_cache(
     const supabase = createPublicClient();
     const { data, error } = await supabase
       .from("categories")
-      .select("name, slug, description")
+      .select("name, slug")
       .eq("is_active", true)
       .order("sort_order");
 
     if (error || !data) return localCategories;
-    return data as Category[];
+    return (data as Array<{ name: string; slug: string }>).map((row) => ({
+      name: row.name,
+      slug: row.slug,
+      description: "",
+    }));
   },
-  ["store-categories-v1"],
+  ["store-categories-v2"],
   { revalidate: 60, tags: ["store-categories", "store-catalog"] },
 );
 

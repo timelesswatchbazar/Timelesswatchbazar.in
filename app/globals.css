@@ -329,6 +329,13 @@ button.nav-link {
   }
 }
 
+.btn-soft:disabled {
+  opacity: 0.65;
+  pointer-events: none;
+  transform: none;
+  box-shadow: none;
+}
+
 .btn-soft:hover {
   background: linear-gradient(135deg, var(--gold) 0%, var(--gold-hover) 100%);
   border-color: var(--gold-hover);

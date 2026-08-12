@@ -2,7 +2,12 @@ import Link from "next/link";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { DeleteProductButton } from "@/components/admin/delete-product-button";
 import { ImageUploadField } from "@/components/admin/image-upload-field";
-import { ProductVariantsPanel } from "@/components/admin/product-variants-panel";
+import {
+  HasVariantsRadios,
+  ProductVariantsOptionProvider,
+  ProductVariantsPanelSlot,
+} from "@/components/admin/product-variants-option";
+import { AdminSubmitButton } from "@/components/admin/submit-button";
 import {
   requireAdmin,
   saveProduct,
@@ -49,19 +54,25 @@ export default async function AdminProductsPage({ searchParams }: Props) {
   }
 
   const successMessage =
-    params.success === "variant"
-      ? "Color variant saved."
-      : params.success === "variant_deleted"
-        ? "Color variant deleted."
-        : params.deleted
-          ? "Product deleted."
-          : params.success
-            ? "Product saved."
-            : "";
+    params.success === "added"
+      ? "Product added successfully."
+      : params.success === "updated"
+        ? "Product updated successfully."
+        : params.success === "variant"
+          ? "Color variant saved."
+          : params.success === "variant_deleted"
+            ? "Color variant deleted."
+            : params.deleted
+              ? "Product deleted successfully."
+              : params.success
+                ? "Product saved successfully."
+                : "";
 
   const errorRaw = params.error ? decodeURIComponent(params.error) : "";
   const errorMessage =
-    errorRaw === "variant_price_required"
+    errorRaw === "invalid_product"
+      ? "Check name and prices. Sale price cannot be higher than actual price."
+      : errorRaw === "variant_price_required"
       ? "Each variant needs its own price (actual and sale)."
       : errorRaw === "variant_name_required"
         ? "Variant name is required."
@@ -73,15 +84,22 @@ export default async function AdminProductsPage({ searchParams }: Props) {
     <AdminShell title="Products">
       {(params.error || successMessage) && (
         <p
-          className={`mb-4 rounded-md px-3 py-2 text-sm ${
-            params.error ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-800"
+          role="status"
+          className={`mb-4 rounded-md px-3 py-2.5 text-sm font-medium ${
+            params.error
+              ? "border border-red-200 bg-red-50 text-red-700"
+              : "border border-emerald-200 bg-emerald-50 text-emerald-800"
           }`}
         >
           {params.error ? errorMessage : successMessage}
         </p>
       )}
 
-      <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,380px)_1fr]">
+        <ProductVariantsOptionProvider
+          key={editing?.id || "new-product"}
+          initialEnabled={Boolean(editing?.has_variants) || variants.length > 0}
+        >
         <div>
         <section className="h-fit rounded-lg border border-[var(--silver)] bg-white p-5 shadow-sm">
           <h2 className="text-lg font-bold">
@@ -178,40 +196,12 @@ export default async function AdminProductsPage({ searchParams }: Props) {
               Active (visible in store)
             </label>
 
-            <fieldset className="rounded-md border border-[var(--silver)] bg-[var(--surface)] p-3">
-              <legend className="px-1 text-sm font-semibold text-[var(--midnight)]">
-                Do you want to add variants?
-              </legend>
-              <p className="mb-2 text-xs text-[var(--muted)]">
-                Optional. Use for colors, sizes, etc. (e.g. Black, Silver).
-              </p>
-              <div className="flex flex-wrap gap-4 text-sm font-medium">
-                <label className="inline-flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="has_variants"
-                    value="yes"
-                    defaultChecked={Boolean(editing?.has_variants) || variants.length > 0}
-                  />
-                  Yes
-                </label>
-                <label className="inline-flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="has_variants"
-                    value="no"
-                    defaultChecked={
-                      !(Boolean(editing?.has_variants) || variants.length > 0)
-                    }
-                  />
-                  No
-                </label>
-              </div>
-            </fieldset>
+            <HasVariantsRadios />
 
-            <button type="submit" className="btn-soft">
-              {editing ? "Update product" : "Add product"}
-            </button>
+            <AdminSubmitButton
+              label={editing ? "Update product" : "Add product"}
+              pendingLabel={editing ? "Updating…" : "Adding product…"}
+            />
             {editing && (
               <Link href="/admin/products" className="block text-center text-sm text-[var(--navy)]">
                 Cancel edit
@@ -220,27 +210,14 @@ export default async function AdminProductsPage({ searchParams }: Props) {
           </form>
         </section>
 
-        {editing && (editing.has_variants || variants.length > 0) && (
-          <ProductVariantsPanel
-            key={`${editing.id}-${params.variant || "new"}`}
-            productId={editing.id}
-            productStock={Number(editing.stock) || 0}
-            variants={variants}
-            editingVariantId={params.variant}
-          />
-        )}
-        {editing && !(editing.has_variants || variants.length > 0) && (
-          <p className="mt-3 text-xs text-[var(--muted)]">
-            Variants are off for this product. Choose <strong>Yes</strong> above and
-            click Update product to add colors or sizes.
-          </p>
-        )}
-        {!editing && (
-          <p className="mt-3 text-xs text-[var(--muted)]">
-            Choose Yes for variants if needed, then save. You can add options after saving.
-          </p>
-        )}
+        <ProductVariantsPanelSlot
+          productId={editing?.id}
+          productStock={Number(editing?.stock) || 0}
+          variants={variants}
+          editingVariantId={params.variant}
+        />
         </div>
+        </ProductVariantsOptionProvider>
 
         <section className="overflow-hidden rounded-lg border border-[var(--silver)] bg-white shadow-sm">
           <div className="overflow-x-auto">
@@ -362,6 +339,8 @@ function Field({
         name={name}
         type={type}
         step={step}
+        min={type === "number" ? "0" : undefined}
+        inputMode={type === "number" ? "decimal" : undefined}
         required={required}
         placeholder={placeholder}
         defaultValue={defaultValue}

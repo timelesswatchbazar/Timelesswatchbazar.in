@@ -29,6 +29,7 @@ export function ProductCard({ product }: { product: Product }) {
             fill
             className="object-cover"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            unoptimized={imageSrc.includes("supabase.co")}
           />
           {(product.isNew || product.isBestSeller || off > 0) && (
             <div className="absolute left-2 top-2 flex flex-col gap-1">

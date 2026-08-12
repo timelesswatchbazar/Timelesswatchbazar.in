@@ -155,7 +155,9 @@ export function ImageUploadField({
           Or paste image URL
         </summary>
         <input
-          type="url"
+          type="text"
+          inputMode="url"
+          autoComplete="off"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://..."

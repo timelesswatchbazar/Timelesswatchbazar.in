@@ -2,6 +2,7 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
+import { createServiceClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 function revalidateStorefront(extraPaths: string[] = []) {
@@ -108,7 +109,8 @@ function slugify(value: string) {
 }
 
 export async function saveProduct(formData: FormData) {
-  const { supabase } = await requireAdmin();
+  await requireAdmin();
+  const supabase = createServiceClient();
 
   const id = String(formData.get("id") || "");
   const name = String(formData.get("name") || "").trim();
@@ -125,8 +127,20 @@ export async function saveProduct(formData: FormData) {
   const isActive = formData.get("is_active") === "on";
   const hasVariants = formData.get("has_variants") === "yes";
 
-  if (!name || actualPrice < 0 || salePrice < 0 || salePrice > actualPrice) {
-    redirect("/admin/products?error=invalid_product");
+  if (!name) {
+    redirect("/admin/products?error=" + encodeURIComponent("Product name is required."));
+  }
+  if (!Number.isFinite(actualPrice) || !Number.isFinite(salePrice) || actualPrice < 0 || salePrice < 0) {
+    redirect(
+      "/admin/products?error=" +
+        encodeURIComponent("Enter valid actual and sale prices (numbers only)."),
+    );
+  }
+  if (salePrice > actualPrice) {
+    redirect(
+      "/admin/products?error=" +
+        encodeURIComponent("Sale price cannot be higher than actual price."),
+    );
   }
 
   let slug = slugify(slugInput || name);
@@ -175,7 +189,7 @@ export async function saveProduct(formData: FormData) {
     const { error } = await supabase.from("products").update(payload).eq("id", id);
     if (error) redirect(`/admin/products?edit=${id}&error=${encodeURIComponent(error.message)}`);
     revalidateStorefront(["/admin/products"]);
-    redirect(`/admin/products?edit=${id}&success=1`);
+    redirect(`/admin/products?edit=${id}&success=updated`);
   }
 
   const { data: created, error } = await supabase
@@ -187,11 +201,12 @@ export async function saveProduct(formData: FormData) {
   if (error) redirect(`/admin/products?error=${encodeURIComponent(error.message)}`);
 
   revalidateStorefront(["/admin/products"]);
-  redirect(`/admin/products?edit=${created.id}&success=1`);
+  redirect(`/admin/products?edit=${created.id}&success=added`);
 }
 
 export async function deleteProduct(formData: FormData) {
-  const { supabase } = await requireAdmin();
+  await requireAdmin();
+  const supabase = createServiceClient();
   const id = String(formData.get("id") || "");
   if (!id) redirect("/admin/products");
 
@@ -203,7 +218,8 @@ export async function deleteProduct(formData: FormData) {
 }
 
 export async function toggleProductFlag(formData: FormData) {
-  const { supabase } = await requireAdmin();
+  await requireAdmin();
+  const supabase = createServiceClient();
   const id = String(formData.get("id") || "");
   const field = String(formData.get("field") || "");
   const value = formData.get("value") === "true";
@@ -336,7 +352,8 @@ export async function deleteCategory(formData: FormData) {
 }
 
 export async function saveProductVariant(formData: FormData) {
-  const { supabase } = await requireAdmin();
+  await requireAdmin();
+  const supabase = createServiceClient();
 
   const id = String(formData.get("id") || "");
   const productId = String(formData.get("product_id") || "");
@@ -424,12 +441,16 @@ export async function saveProductVariant(formData: FormData) {
     }
   }
 
+  // Keep parent flag in sync so storefront shows variant picker.
+  await supabase.from("products").update({ has_variants: true }).eq("id", productId);
+
   revalidateStorefront(["/admin/products"]);
   redirect(`/admin/products?edit=${productId}&success=variant`);
 }
 
 export async function deleteProductVariant(formData: FormData) {
-  const { supabase } = await requireAdmin();
+  await requireAdmin();
+  const supabase = createServiceClient();
   const id = String(formData.get("id") || "");
   const productId = String(formData.get("product_id") || "");
   if (!id) redirect("/admin/products");
