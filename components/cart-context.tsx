@@ -26,8 +26,9 @@ type CartContextValue = {
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
-const STORAGE_KEY = "timeless-watch-bazar-cart-v4";
+const STORAGE_KEY = "timeless-watch-bazar-cart-v5";
 const LEGACY_KEYS = [
+  "timeless-watch-bazar-cart-v4",
   "timeless-watch-bazar-cart-v3",
   "timeless-watch-bazar-cart-v2",
 ];

@@ -35,6 +35,7 @@ export default function CartPage() {
           variantId: product.variantId,
           colorName: variantLabel,
           imageUrl: product.image,
+          unitPrice: product.price,
         };
       }),
     });
@@ -117,8 +118,8 @@ export default function CartPage() {
                           {product.name}
                         </Link>
                         {variantLabel ? (
-                          <p className="mt-1.5 inline-flex items-center rounded-md bg-[var(--midnight)] px-2 py-0.5 text-xs font-bold text-white">
-                            Variant: {variantLabel}
+                          <p className="mt-1.5 text-sm font-semibold text-[var(--navy)]">
+                            Color: {variantLabel}
                           </p>
                         ) : null}
                       </div>
@@ -127,8 +128,10 @@ export default function CartPage() {
                       </p>
                     </div>
                     <p className="mt-1 text-sm font-medium text-[var(--muted)]">
-                      {formatMoney(product.price)}
-                      {variantLabel ? ` · ${variantLabel}` : ""}
+                      Price: {formatMoney(product.price)}
+                    </p>
+                    <p className="mt-0.5 text-xs text-[var(--muted)]">
+                      Quantity: {quantity}
                     </p>
                     <div className="mt-3 flex flex-wrap items-center gap-3">
                       <div className="quantity-control">
@@ -188,7 +191,7 @@ export default function CartPage() {
                         <span className="font-medium">{product.name}</span>
                         {variantLabel ? (
                           <span className="mt-0.5 block text-xs font-semibold text-[var(--midnight)]">
-                            Variant: {variantLabel}
+                            Color: {variantLabel}
                           </span>
                         ) : null}
                         <span className="text-xs text-[var(--muted)]"> × {quantity}</span>

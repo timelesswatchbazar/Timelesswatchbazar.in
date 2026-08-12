@@ -350,8 +350,8 @@ export async function saveProductVariant(formData: FormData) {
 
   const actualRaw = String(formData.get("actual_price") || "").trim();
   const saleRaw = String(formData.get("sale_price") || "").trim();
-  const actualPrice = actualRaw === "" ? null : Number(actualRaw);
-  const salePrice = saleRaw === "" ? null : Number(saleRaw);
+  let actualPrice = actualRaw === "" ? null : Number(actualRaw);
+  let salePrice = saleRaw === "" ? null : Number(saleRaw);
 
   if (!productId || !colorName) {
     redirect(`/admin/products?edit=${productId}&error=variant_name_required`);
@@ -370,10 +370,19 @@ export async function saveProductVariant(formData: FormData) {
     );
   }
 
+  // Each variant should have its own price (sale and/or actual).
+  if (salePrice == null && actualPrice == null) {
+    redirect(`/admin/products?edit=${productId}&error=variant_price_required`);
+  }
+  if (salePrice == null && actualPrice != null) salePrice = actualPrice;
+  if (actualPrice == null && salePrice != null) actualPrice = salePrice;
+
   if (
-    (actualPrice != null && actualPrice < 0) ||
-    (salePrice != null && salePrice < 0) ||
-    (actualPrice != null && salePrice != null && salePrice > actualPrice)
+    actualPrice == null ||
+    salePrice == null ||
+    actualPrice < 0 ||
+    salePrice < 0 ||
+    salePrice > actualPrice
   ) {
     redirect(`/admin/products?edit=${productId}&error=invalid_variant_price`);
   }

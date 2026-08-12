@@ -72,7 +72,7 @@ const loadProductsFromSupabase = unstable_cache(
 
     return mapRows(data as ProductRow[]);
   },
-  ["store-products-v3"],
+  ["store-products-v4"],
   { revalidate: 60, tags: ["store-products", "store-catalog"] },
 );
 

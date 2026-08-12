@@ -24,6 +24,14 @@ function uniqueImages(urls: Array<string | undefined | null>) {
   return out;
 }
 
+function galleryForSelection(product: StoreProduct, selected: StoreVariant | null) {
+  if (selected) {
+    // Variant image first; keep product gallery as extras only.
+    return uniqueImages([selected.image, product.image, ...(product.gallery || [])]);
+  }
+  return uniqueImages([product.image, ...(product.gallery || [])]);
+}
+
 export function ProductPurchasePanel({ product }: { product: StoreProduct }) {
   const variants = product.hasVariants ? product.variants || [] : [];
   const needsVariant = variants.length > 0;
@@ -37,12 +45,7 @@ export function ProductPurchasePanel({ product }: { product: StoreProduct }) {
   );
 
   const gallery = useMemo(
-    () =>
-      uniqueImages([
-        selected?.image,
-        product.image,
-        ...(product.gallery || []),
-      ]),
+    () => galleryForSelection(product, selected),
     [product, selected],
   );
 
@@ -65,10 +68,11 @@ export function ProductPurchasePanel({ product }: { product: StoreProduct }) {
   const canAdd = !needsVariant || Boolean(selected);
   const outOfStock = canAdd && stock <= 0;
 
+  // Rule: selected variant → always use that variant's image & price.
   const cartImage =
     (selected?.image || "").trim() ||
-    (imageSrc !== FALLBACK_IMAGE ? imageSrc : "") ||
     (product.image || "").trim() ||
+    imageSrc ||
     FALLBACK_IMAGE;
 
   const cartProduct: Product = {
@@ -103,6 +107,11 @@ export function ProductPurchasePanel({ product }: { product: StoreProduct }) {
             sizes="(max-width: 1024px) 100vw, 50vw"
             unoptimized={imageSrc.includes("supabase.co")}
           />
+          {variantLabel ? (
+            <span className="absolute left-3 top-3 rounded bg-[var(--midnight)]/90 px-2.5 py-1 text-xs font-semibold text-white">
+              {variantLabel}
+            </span>
+          ) : null}
         </div>
 
         {gallery.length > 1 && (
@@ -157,34 +166,46 @@ export function ProductPurchasePanel({ product }: { product: StoreProduct }) {
         {needsVariant && (
           <div className="mt-5">
             <p className="text-sm font-semibold text-[var(--midnight)]">
-              Select option
+              Color / option
               {variantLabel ? (
                 <>
                   :{" "}
                   <span className="font-bold text-[var(--navy)]">{variantLabel}</span>
                 </>
-              ) : null}
+              ) : (
+                <span className="font-normal text-[var(--muted)]"> — select one</span>
+              )}
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               {variants.map((variant) => {
                 const active = selectedId === variant.id;
+                const variantPrice = resolveVariantPricing(product, variant).price;
                 return (
                   <button
                     key={variant.id}
                     type="button"
                     onClick={() => setSelectedId(variant.id)}
                     aria-pressed={active}
-                    className={`inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold transition ${
+                    className={`inline-flex min-w-[7.5rem] flex-col items-start gap-1 rounded-md border px-3 py-2 text-left transition ${
                       active
                         ? "border-[var(--midnight)] bg-[var(--midnight)] text-white"
                         : "border-[var(--silver)] bg-white text-[var(--navy)] hover:border-[var(--navy)]"
                     }`}
                   >
+                    <span className="inline-flex items-center gap-2 text-sm font-semibold">
+                      <span
+                        className="h-3.5 w-3.5 shrink-0 rounded-full border border-black/15"
+                        style={{ backgroundColor: variant.colorHex || "#C7A252" }}
+                      />
+                      {variant.colorName}
+                    </span>
                     <span
-                      className="h-3.5 w-3.5 rounded-full border border-black/15"
-                      style={{ backgroundColor: variant.colorHex || "#C7A252" }}
-                    />
-                    {variant.colorName}
+                      className={`text-xs font-bold ${
+                        active ? "text-white/90" : "text-[var(--muted)]"
+                      }`}
+                    >
+                      {formatMoney(variantPrice)}
+                    </span>
                   </button>
                 );
               })}
@@ -194,7 +215,7 @@ export function ProductPurchasePanel({ product }: { product: StoreProduct }) {
                 ? stock > 0
                   ? `${stock} in stock`
                   : "Out of stock"
-                : "Please select a variant"}
+                : "Please select a variant before adding to cart"}
             </p>
           </div>
         )}

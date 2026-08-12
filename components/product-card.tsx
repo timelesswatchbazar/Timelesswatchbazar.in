@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { AddToCartButton } from "@/components/add-to-cart-button";
@@ -13,6 +15,9 @@ export function ProductCard({ product }: { product: Product }) {
     product.image && product.image.trim()
       ? product.image
       : "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80";
+
+  const hasVariants =
+    Boolean(product.hasVariants) || (product.variants && product.variants.length > 0);
 
   return (
     <article className="product-card flex h-full flex-col overflow-hidden rounded-md border border-[var(--silver)] bg-white">
@@ -62,9 +67,20 @@ export function ProductCard({ product }: { product: Product }) {
           {off > 0 && (
             <p className="text-xs text-[var(--muted)] line-through">{formatMoney(actual)}</p>
           )}
+          {hasVariants ? (
+            <p className="mt-0.5 text-[10px] font-medium text-[var(--muted)]">
+              Options available
+            </p>
+          ) : null}
         </div>
         <div className="mt-auto pt-1">
-          <AddToCartButton product={product} />
+          {hasVariants ? (
+            <Link href={href} className="btn-soft block text-center text-sm">
+              Select option
+            </Link>
+          ) : (
+            <AddToCartButton product={product} />
+          )}
         </div>
       </div>
     </article>

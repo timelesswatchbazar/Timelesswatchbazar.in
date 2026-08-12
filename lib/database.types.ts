@@ -210,8 +210,22 @@ export function resolveVariantPricing(
   product: Pick<StoreProduct, "actualPrice" | "price">,
   variant?: StoreVariant | null,
 ) {
+  if (!variant) {
+    return { actualPrice: product.actualPrice, price: product.price };
+  }
+
+  // Selected variant always drives price: sale → actual → parent product.
+  const price =
+    variant.price != null
+      ? Number(variant.price)
+      : variant.actualPrice != null
+        ? Number(variant.actualPrice)
+        : product.price;
+
   const actual =
-    variant?.actualPrice != null ? variant.actualPrice : product.actualPrice;
-  const price = variant?.price != null ? variant.price : product.price;
+    variant.actualPrice != null
+      ? Number(variant.actualPrice)
+      : Math.max(price, product.actualPrice);
+
   return { actualPrice: actual, price };
 }

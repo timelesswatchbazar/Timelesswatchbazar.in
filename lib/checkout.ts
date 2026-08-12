@@ -8,9 +8,12 @@ export type CheckoutItem = {
   productId: string;
   quantity: number;
   variantId?: string;
+  /** Variant display name e.g. Black & Gold */
   colorName?: string;
   /** Snapshot from cart (selected variant image) */
   imageUrl?: string;
+  /** Price locked at add-to-cart / checkout time */
+  unitPrice?: number;
 };
 
 export async function placeOrder(input: {
@@ -74,10 +77,21 @@ export async function placeOrder(input: {
         throw new Error(`${product.name} (${variant.color_name}) is out of stock.`);
       }
 
-      const unit =
-        variant?.sale_price != null
-          ? Number(variant.sale_price)
-          : Number(product.sale_price);
+      // Prefer cart price-at-purchase; otherwise resolve variant → product.
+      let unit: number;
+      if (item.unitPrice != null && Number(item.unitPrice) >= 0) {
+        unit = Number(item.unitPrice);
+      } else if (variant) {
+        unit =
+          variant.sale_price != null
+            ? Number(variant.sale_price)
+            : variant.actual_price != null
+              ? Number(variant.actual_price)
+              : Number(product.sale_price);
+      } else {
+        unit = Number(product.sale_price);
+      }
+
       const qty = Math.max(1, item.quantity);
       const colorName =
         (variant?.color_name as string | undefined) || item.colorName || "";
@@ -94,7 +108,7 @@ export async function placeOrder(input: {
         unit_price: unit,
         quantity: qty,
         line_total: unit * qty,
-        variant_id: variant?.id || null,
+        variant_id: variant?.id || item.variantId || null,
         variant_label: colorName,
       };
     });

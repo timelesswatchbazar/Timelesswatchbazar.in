@@ -23,8 +23,8 @@ export function ProductVariantsPanel({
     <section className="mt-6 rounded-lg border border-[var(--silver)] bg-white p-5 shadow-sm">
       <h2 className="text-lg font-bold text-[var(--midnight)]">Product variants</h2>
       <p className="mt-1 text-sm text-[var(--muted)]">
-        Add options like <strong>Black</strong>, <strong>Silver</strong>, or sizes.
-        Optional image/price per variant — leave prices empty to use the product price.
+        Add options like <strong>Black &amp; Silver</strong> or <strong>Black &amp; Gold</strong>.
+        Each variant needs its <strong>own price</strong> and can have its own image and stock.
       </p>
 
       <form action={saveProductVariant} className="mt-4 space-y-3 border-b border-[var(--silver)] pb-5">
@@ -39,12 +39,12 @@ export function ProductVariantsPanel({
               name="color_name"
               required
               defaultValue={editing?.color_name}
-              placeholder="Black, Silver, Size M…"
+              placeholder="Black & Gold"
               className="w-full rounded-md border border-[var(--silver)] px-3 py-2 text-sm"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-semibold">Swatch (optional)</label>
+            <label className="mb-1 block text-sm font-semibold">Swatch color</label>
             <div className="flex items-center gap-2">
               <input
                 type="color"
@@ -70,7 +70,7 @@ export function ProductVariantsPanel({
           name="image_url"
           bucket="product-images"
           defaultValue={editing?.image_url}
-          label="Variant image (optional)"
+          label="Variant image"
         />
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -96,26 +96,30 @@ export function ProductVariantsPanel({
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-semibold">Actual ₹ (optional)</label>
+            <label className="mb-1 block text-sm font-semibold">Actual price (₹)</label>
             <input
               name="actual_price"
               type="number"
               step="0.01"
+              min={0}
+              required
               defaultValue={
                 editing?.actual_price != null ? String(editing.actual_price) : ""
               }
-              placeholder="inherit"
+              placeholder="3299"
               className="w-full rounded-md border border-[var(--silver)] px-3 py-2 text-sm"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-semibold">Sale ₹ (optional)</label>
+            <label className="mb-1 block text-sm font-semibold">Sale price (₹)</label>
             <input
               name="sale_price"
               type="number"
               step="0.01"
+              min={0}
+              required
               defaultValue={editing?.sale_price != null ? String(editing.sale_price) : ""}
-              placeholder="inherit"
+              placeholder="3299"
               className="w-full rounded-md border border-[var(--silver)] px-3 py-2 text-sm"
             />
           </div>

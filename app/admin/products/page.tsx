@@ -59,6 +59,16 @@ export default async function AdminProductsPage({ searchParams }: Props) {
             ? "Product saved."
             : "";
 
+  const errorRaw = params.error ? decodeURIComponent(params.error) : "";
+  const errorMessage =
+    errorRaw === "variant_price_required"
+      ? "Each variant needs its own price (actual and sale)."
+      : errorRaw === "variant_name_required"
+        ? "Variant name is required."
+        : errorRaw === "invalid_variant_price"
+          ? "Invalid variant price. Sale price cannot be higher than actual price."
+          : errorRaw;
+
   return (
     <AdminShell title="Products">
       {(params.error || successMessage) && (
@@ -67,7 +77,7 @@ export default async function AdminProductsPage({ searchParams }: Props) {
             params.error ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-800"
           }`}
         >
-          {params.error ? decodeURIComponent(params.error) : successMessage}
+          {params.error ? errorMessage : successMessage}
         </p>
       )}
 
