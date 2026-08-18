@@ -6,6 +6,7 @@ import {
   mapProductRow,
   type BannerRow,
   type ProductRow,
+  type ProductVariantRow,
   type StoreProduct,
 } from "@/lib/database.types";
 import {
@@ -23,6 +24,7 @@ const PRODUCT_SELECT_BASE = `
   name,
   description,
   image_url,
+  gallery,
   actual_price,
   sale_price,
   stock,
@@ -32,6 +34,7 @@ const PRODUCT_SELECT_BASE = `
   has_variants,
   sort_order,
   created_at,
+  updated_at,
   category_id,
   categories ( id, name, slug )
 `;
@@ -119,13 +122,40 @@ function toLocalProduct(
   };
 }
 
-function mapRows(rows: ProductRow[]): StoreProduct[] {
-  return rows.map((row) =>
-    mapProductRow({
-      ...row,
+function mapRows(rows: unknown): StoreProduct[] {
+  const list = Array.isArray(rows) ? rows : [];
+  return list.map((raw) => {
+    const row = raw as Partial<ProductRow> & {
+      categories?: ProductRow["categories"] | ProductRow["categories"][] | null;
+      product_variants?: ProductVariantRow[] | null;
+    };
+
+    const categories = Array.isArray(row.categories)
+      ? row.categories[0] || null
+      : row.categories || null;
+
+    return mapProductRow({
+      id: String(row.id || ""),
+      category_id: row.category_id ?? null,
+      name: String(row.name || ""),
+      slug: String(row.slug || ""),
+      description: String(row.description || ""),
+      image_url: String(row.image_url || ""),
+      gallery: Array.isArray(row.gallery) ? row.gallery : [],
+      actual_price: Number(row.actual_price) || 0,
+      sale_price: Number(row.sale_price) || 0,
+      stock: Number(row.stock) || 0,
+      is_new_arrival: Boolean(row.is_new_arrival),
+      is_best_seller: Boolean(row.is_best_seller),
+      is_active: row.is_active !== false,
+      has_variants: Boolean(row.has_variants),
+      sort_order: Number(row.sort_order) || 0,
+      created_at: String(row.created_at || ""),
+      updated_at: String(row.updated_at || ""),
+      categories,
       product_variants: (row.product_variants || []).filter((v) => v.is_active),
-    }),
-  );
+    });
+  });
 }
 
 const loadProductsFromSupabase = unstable_cache(
@@ -138,7 +168,7 @@ const loadProductsFromSupabase = unstable_cache(
       return [];
     }
 
-    return mapRows(data as ProductRow[]);
+    return mapRows(data);
   },
   ["store-products-v6"],
   { revalidate: 60, tags: ["store-products", "store-catalog"] },
@@ -154,7 +184,7 @@ async function loadProductBySlugFromSupabase(slug: string): Promise<StoreProduct
   }
 
   if (data) {
-    return mapRows([data as ProductRow])[0] || null;
+    return mapRows([data])[0] || null;
   }
 
   // Fallback: case-insensitive / id match from full catalog
