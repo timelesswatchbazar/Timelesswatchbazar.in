@@ -17,7 +17,7 @@ import {
 } from "@/lib/products";
 import type { Category } from "@/lib/types";
 
-const PRODUCT_SELECT = `
+const PRODUCT_SELECT_BASE = `
   id,
   slug,
   name,
@@ -33,21 +33,68 @@ const PRODUCT_SELECT = `
   sort_order,
   created_at,
   category_id,
-  categories ( id, name, slug ),
-  product_variants (
-    id,
-    product_id,
-    color_name,
-    color_hex,
-    image_url,
-    stock,
-    sale_price,
-    actual_price,
-    is_default,
-    is_active,
-    sort_order
-  )
+  categories ( id, name, slug )
 `;
+
+const PRODUCT_SELECT = `${PRODUCT_SELECT_BASE},
+  product_variants (
+    id, product_id, color_name, color_hex, image_url, gallery,
+    stock, sale_price, actual_price, is_default, is_active, sort_order
+  )`;
+
+/** Fallback before supabase/15_variant_gallery.sql is applied */
+const PRODUCT_SELECT_LEGACY = `${PRODUCT_SELECT_BASE},
+  product_variants (
+    id, product_id, color_name, color_hex, image_url,
+    stock, sale_price, actual_price, is_default, is_active, sort_order
+  )`;
+
+function isMissingGalleryColumn(message?: string) {
+  return Boolean(message && /gallery/i.test(message) && /does not exist|column/i.test(message));
+}
+
+async function selectProductsQuery(supabase: ReturnType<typeof createPublicClient>) {
+  const primary = await supabase
+    .from("products")
+    .select(PRODUCT_SELECT)
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: false });
+
+  if (!primary.error || !isMissingGalleryColumn(primary.error.message)) {
+    return primary;
+  }
+
+  return supabase
+    .from("products")
+    .select(PRODUCT_SELECT_LEGACY)
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: false });
+}
+
+async function selectProductBySlugQuery(
+  supabase: ReturnType<typeof createPublicClient>,
+  slug: string,
+) {
+  const primary = await supabase
+    .from("products")
+    .select(PRODUCT_SELECT)
+    .eq("is_active", true)
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (!primary.error || !isMissingGalleryColumn(primary.error.message)) {
+    return primary;
+  }
+
+  return supabase
+    .from("products")
+    .select(PRODUCT_SELECT_LEGACY)
+    .eq("is_active", true)
+    .eq("slug", slug)
+    .maybeSingle();
+}
 
 function toLocalProduct(
   p: (typeof localProducts)[number],
@@ -84,12 +131,7 @@ function mapRows(rows: ProductRow[]): StoreProduct[] {
 const loadProductsFromSupabase = unstable_cache(
   async (): Promise<StoreProduct[]> => {
     const supabase = createPublicClient();
-    const { data, error } = await supabase
-      .from("products")
-      .select(PRODUCT_SELECT)
-      .eq("is_active", true)
-      .order("sort_order", { ascending: true })
-      .order("created_at", { ascending: false });
+    const { data, error } = await selectProductsQuery(supabase);
 
     if (error || !data) {
       if (error) console.error("fetchStoreProducts:", error.message);
@@ -98,19 +140,14 @@ const loadProductsFromSupabase = unstable_cache(
 
     return mapRows(data as ProductRow[]);
   },
-  ["store-products-v5"],
+  ["store-products-v6"],
   { revalidate: 60, tags: ["store-products", "store-catalog"] },
 );
 
 async function loadProductBySlugFromSupabase(slug: string): Promise<StoreProduct | null> {
   const supabase = createPublicClient();
 
-  const { data, error } = await supabase
-    .from("products")
-    .select(PRODUCT_SELECT)
-    .eq("is_active", true)
-    .eq("slug", slug)
-    .maybeSingle();
+  const { data, error } = await selectProductBySlugQuery(supabase, slug);
 
   if (error) {
     console.error("fetchStoreProduct:", error.message);

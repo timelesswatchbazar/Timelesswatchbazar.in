@@ -6,19 +6,33 @@ import { uploadImage } from "@/lib/upload";
 export function ImageUploadField({
   name,
   defaultValue = "",
+  value,
+  onChange,
   bucket,
   label = "Image",
+  compact = false,
 }: {
-  name: string;
+  name?: string;
   defaultValue?: string;
+  /** Controlled value — when set with onChange, field is controlled. */
+  value?: string;
+  onChange?: (url: string) => void;
   bucket: "product-images" | "banner-images";
   label?: string;
+  compact?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [url, setUrl] = useState(defaultValue);
+  const isControlled = value !== undefined && typeof onChange === "function";
+  const [internalUrl, setInternalUrl] = useState(defaultValue);
+  const url = isControlled ? value : internalUrl;
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [dragging, setDragging] = useState(false);
+
+  function setUrl(next: string) {
+    if (isControlled) onChange?.(next);
+    else setInternalUrl(next);
+  }
 
   async function handleFile(file: File | undefined | null) {
     if (!file) return;
@@ -69,7 +83,7 @@ export function ImageUploadField({
   return (
     <div className="space-y-2">
       <label className="block text-sm font-semibold text-[var(--midnight)]">{label}</label>
-      <input type="hidden" name={name} value={url} />
+      {name ? <input type="hidden" name={name} value={url} /> : null}
 
       <div
         role="button"
@@ -84,7 +98,9 @@ export function ImageUploadField({
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
-        className={`relative flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-6 text-center transition ${
+        className={`relative flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed text-center transition ${
+          compact ? "px-3 py-4" : "px-4 py-6"
+        } ${
           dragging
             ? "border-[var(--gold)] bg-[var(--gold)]/10"
             : "border-[var(--silver)] bg-[var(--surface)] hover:border-[var(--gold)] hover:bg-white"
@@ -104,50 +120,49 @@ export function ImageUploadField({
           <img
             src={url}
             alt="Preview"
-            className="mb-3 h-28 w-28 rounded-md border border-[var(--silver)] object-cover"
+            className={`mb-2 rounded-md border border-[var(--silver)] object-cover ${
+              compact ? "h-20 w-20" : "h-28 w-28"
+            }`}
           />
         ) : (
-          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white text-[var(--gold)] shadow-sm">
-            <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <div
+            className={`mb-2 flex items-center justify-center rounded-full bg-white text-[var(--gold)] shadow-sm ${
+              compact ? "h-10 w-10" : "h-12 w-12"
+            }`}
+          >
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
               <path d="M12 16V4m0 0l-4 4m4-4l4 4" strokeLinecap="round" strokeLinejoin="round" />
               <path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" strokeLinecap="round" />
             </svg>
           </div>
         )}
 
-        <p className="text-sm font-semibold text-[var(--midnight)]">
+        <p className="text-xs font-semibold text-[var(--midnight)] sm:text-sm">
           {uploading
             ? "Uploading…"
             : dragging
               ? "Drop image to upload"
               : url
-                ? "Drop a new image or click to replace"
-                : "Drag & drop product image here"}
+                ? "Replace image"
+                : "Upload image"}
         </p>
-        <p className="mt-1 text-xs text-[var(--muted)]">JPG, PNG, WEBP · max 5 MB</p>
-
-        <span className="btn-soft mt-3 inline-flex max-w-[11rem] text-sm">
-          {uploading ? "Please wait…" : "Choose file"}
-        </span>
+        {!compact && (
+          <p className="mt-1 text-xs text-[var(--muted)]">JPG, PNG, WEBP · max 5 MB</p>
+        )}
       </div>
 
       {url && (
-        <div className="flex items-center justify-between gap-2">
-          <p className="truncate text-xs text-[var(--muted)]" title={url}>
-            Uploaded
-          </p>
-          <button
-            type="button"
-            disabled={uploading}
-            onClick={() => {
-              setUrl("");
-              setError("");
-            }}
-            className="text-xs font-semibold text-red-600 hover:underline"
-          >
-            Remove image
-          </button>
-        </div>
+        <button
+          type="button"
+          disabled={uploading}
+          onClick={() => {
+            setUrl("");
+            setError("");
+          }}
+          className="text-xs font-semibold text-red-600 hover:underline"
+        >
+          Remove image
+        </button>
       )}
 
       <details className="text-sm">

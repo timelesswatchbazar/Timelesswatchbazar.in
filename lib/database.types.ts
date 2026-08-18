@@ -15,6 +15,8 @@ export type ProductVariantRow = {
   color_name: string;
   color_hex: string;
   image_url: string;
+  /** Extra images for this variation (ordered). Primary is image_url. */
+  gallery?: string[] | null;
   stock: number;
   actual_price: number | null;
   sale_price: number | null;
@@ -124,7 +126,10 @@ export type StoreVariant = {
   id: string;
   colorName: string;
   colorHex: string;
+  /** Primary image (cart / variation selector) */
   image: string;
+  /** All images for this variation (primary first) */
+  images: string[];
   stock: number;
   actualPrice: number | null;
   price: number | null;
@@ -150,12 +155,28 @@ export type StoreProduct = {
   variants?: StoreVariant[];
 };
 
+function uniqueUrls(urls: Array<string | undefined | null>) {
+  const out: string[] = [];
+  for (const raw of urls) {
+    const url = (raw || "").trim();
+    if (url && !out.includes(url)) out.push(url);
+  }
+  return out;
+}
+
 export function mapVariantRow(row: ProductVariantRow): StoreVariant {
+  const primary = (row.image_url || "").trim();
+  const extras = Array.isArray(row.gallery)
+    ? row.gallery.map((g) => String(g || "").trim()).filter(Boolean)
+    : [];
+  const images = uniqueUrls([primary, ...extras]);
+
   return {
     id: row.id,
     colorName: row.color_name,
     colorHex: row.color_hex || "#C7A252",
-    image: (row.image_url || "").trim(),
+    image: images[0] || "",
+    images,
     stock: row.stock,
     actualPrice: row.actual_price == null ? null : Number(row.actual_price),
     price: row.sale_price == null ? null : Number(row.sale_price),
@@ -169,7 +190,7 @@ export function mapProductRow(row: ProductRow): StoreProduct {
     .sort((a, b) => a.sort_order - b.sort_order || a.color_name.localeCompare(b.color_name))
     .map(mapVariantRow);
 
-  // Only expose variants when the product is flagged for them (or legacy rows exist).
+  // Prefer explicit flag; still show legacy rows if flag was never set.
   const hasVariants = Boolean(row.has_variants) || allVariants.length > 0;
   const variants = hasVariants ? allVariants : [];
 
@@ -181,18 +202,26 @@ export function mapProductRow(row: ProductRow): StoreProduct {
     : [];
 
   const variantStockTotal = variants.reduce((sum, v) => sum + v.stock, 0);
+  const basePricing = {
+    actualPrice: Number(row.actual_price),
+    price: Number(row.sale_price),
+  };
+  const listingPricing = resolveVariantPricing(basePricing, defaultVariant);
 
   return {
     id: row.id,
     slug: row.slug,
     name: row.name,
     description: row.description,
-    image: (row.image_url || "").trim() || defaultVariant?.image || "",
+    image:
+      (defaultVariant?.image || "").trim() ||
+      (row.image_url || "").trim() ||
+      "",
     gallery,
     category: row.categories?.slug ?? "",
     categoryName: row.categories?.name,
-    actualPrice: Number(row.actual_price),
-    price: Number(row.sale_price),
+    actualPrice: listingPricing.actualPrice,
+    price: listingPricing.price,
     stock: variants.length > 0 ? variantStockTotal : row.stock,
     isNew: row.is_new_arrival,
     isBestSeller: row.is_best_seller,

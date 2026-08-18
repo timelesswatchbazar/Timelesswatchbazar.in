@@ -117,15 +117,104 @@ export async function saveProduct(formData: FormData) {
   const slugInput = String(formData.get("slug") || "").trim();
   const description = String(formData.get("description") || "").trim();
   const categoryId = String(formData.get("category_id") || "") || null;
-  const imageUrl = String(formData.get("image_url") || "").trim();
-  const actualPrice = Number(formData.get("actual_price") || 0);
-  const salePrice = Number(formData.get("sale_price") || 0);
-  const stock = Number(formData.get("stock") || 0);
+  let imageUrl = String(formData.get("image_url") || "").trim();
+  let actualPrice = Number(formData.get("actual_price") || 0);
+  let salePrice = Number(formData.get("sale_price") || 0);
+  let stock = Number(formData.get("stock") || 0);
   const sortOrder = Number(formData.get("sort_order") || 0);
   const isNewArrival = formData.get("is_new_arrival") === "on";
   const isBestSeller = formData.get("is_best_seller") === "on";
   const isActive = formData.get("is_active") === "on";
   const hasVariants = formData.get("has_variants") === "yes";
+
+  type IncomingVariant = {
+    id?: string | null;
+    color_name: string;
+    color_hex: string;
+    actual_price: string | number;
+    sale_price: string | number;
+    image_url: string;
+    gallery?: string[];
+    stock: number;
+    sort_order: number;
+    is_default: boolean;
+    is_active: boolean;
+  };
+
+  let incomingVariants: IncomingVariant[] = [];
+  if (hasVariants) {
+    try {
+      const raw = String(formData.get("variants_json") || "[]");
+      const parsed = JSON.parse(raw) as IncomingVariant[];
+      if (!Array.isArray(parsed)) throw new Error("invalid");
+      incomingVariants = parsed;
+    } catch {
+      redirect(
+        `/admin/products?error=${encodeURIComponent("Invalid variations data. Please try again.")}`,
+      );
+    }
+
+    if (!incomingVariants.length) {
+      redirect(
+        `/admin/products?error=${encodeURIComponent("Add at least one color variation.")}`,
+      );
+    }
+
+    const seen = new Set<string>();
+    for (const v of incomingVariants) {
+      const colorName = String(v.color_name || "").trim();
+      if (!colorName) {
+        redirect(
+          `/admin/products?error=${encodeURIComponent("Each variation needs a color name.")}`,
+        );
+      }
+      const key = colorName.toLowerCase();
+      if (seen.has(key)) {
+        redirect(
+          `/admin/products?error=${encodeURIComponent(
+            `A variation with the color "${colorName}" already exists.`,
+          )}`,
+        );
+      }
+      seen.add(key);
+
+      if (!String(v.image_url || "").trim()) {
+        redirect(
+          `/admin/products?error=${encodeURIComponent(
+            `Image is required for color "${colorName}".`,
+          )}`,
+        );
+      }
+
+      const vActual = Number(v.actual_price);
+      const vSale = Number(v.sale_price);
+      if (!Number.isFinite(vActual) || vActual < 0 || !Number.isFinite(vSale) || vSale < 0) {
+        redirect(
+          `/admin/products?error=${encodeURIComponent(
+            `Enter valid prices for color "${colorName}".`,
+          )}`,
+        );
+      }
+      if (vSale > vActual) {
+        redirect(
+          `/admin/products?error=${encodeURIComponent(
+            `Sale price cannot be higher than actual price for "${colorName}".`,
+          )}`,
+        );
+      }
+    }
+
+    if (!incomingVariants.some((v) => v.is_default)) {
+      incomingVariants[0].is_default = true;
+    }
+
+    const defaultVariant =
+      incomingVariants.find((v) => v.is_default) || incomingVariants[0];
+    actualPrice = Number(defaultVariant.actual_price);
+    salePrice = Number(defaultVariant.sale_price);
+    imageUrl = String(defaultVariant.image_url || "").trim();
+    stock = incomingVariants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
+  }
 
   if (!name) {
     redirect("/admin/products?error=" + encodeURIComponent("Product name is required."));
@@ -185,23 +274,93 @@ export async function saveProduct(formData: FormData) {
     has_variants: hasVariants,
   };
 
+  let productId = id;
+
   if (id) {
     const { error } = await supabase.from("products").update(payload).eq("id", id);
     if (error) redirect(`/admin/products?edit=${id}&error=${encodeURIComponent(error.message)}`);
-    revalidateStorefront(["/admin/products"]);
-    redirect(`/admin/products?edit=${id}&success=updated`);
+  } else {
+    const { data: created, error } = await supabase
+      .from("products")
+      .insert(payload)
+      .select("id")
+      .single();
+
+    if (error) redirect(`/admin/products?error=${encodeURIComponent(error.message)}`);
+    productId = created.id;
   }
 
-  const { data: created, error } = await supabase
-    .from("products")
-    .insert(payload)
-    .select("id")
-    .single();
+  // Sync color variations in the same save.
+  if (hasVariants) {
+    const { data: existingRows } = await supabase
+      .from("product_variants")
+      .select("id")
+      .eq("product_id", productId);
+    const existingIds = new Set((existingRows || []).map((r) => r.id as string));
+    const keepIds = new Set(
+      incomingVariants.map((v) => v.id).filter((v): v is string => Boolean(v)),
+    );
 
-  if (error) redirect(`/admin/products?error=${encodeURIComponent(error.message)}`);
+    // Clear defaults first so we can set exactly one.
+    await supabase
+      .from("product_variants")
+      .update({ is_default: false })
+      .eq("product_id", productId);
+
+    for (const [index, v] of incomingVariants.entries()) {
+      const colorName = String(v.color_name).trim();
+      const primary = String(v.image_url || "").trim();
+      const gallery = Array.isArray(v.gallery)
+        ? v.gallery.map((g) => String(g || "").trim()).filter((g) => g && g !== primary)
+        : [];
+      const row = {
+        product_id: productId,
+        color_name: colorName,
+        color_hex: String(v.color_hex || "#C7A252").trim() || "#C7A252",
+        image_url: primary,
+        gallery,
+        stock: Number(v.stock) || 0,
+        sort_order: Number(v.sort_order) || index,
+        actual_price: Number(v.actual_price),
+        sale_price: Number(v.sale_price),
+        is_default: Boolean(v.is_default),
+        is_active: v.is_active !== false,
+      };
+
+      if (v.id && existingIds.has(v.id)) {
+        const { error } = await supabase
+          .from("product_variants")
+          .update(row)
+          .eq("id", v.id)
+          .eq("product_id", productId);
+        if (error) {
+          redirect(
+            `/admin/products?edit=${productId}&error=${encodeURIComponent(error.message)}`,
+          );
+        }
+      } else {
+        const { error } = await supabase.from("product_variants").insert(row);
+        if (error) {
+          redirect(
+            `/admin/products?edit=${productId}&error=${encodeURIComponent(error.message)}`,
+          );
+        }
+      }
+    }
+
+    const toDelete = [...existingIds].filter((vid) => !keepIds.has(vid));
+    if (toDelete.length) {
+      await supabase.from("product_variants").delete().in("id", toDelete);
+    }
+  } else if (id) {
+    // Switching to No removes old variation rows so storefront stays clean.
+    await supabase.from("product_variants").delete().eq("product_id", productId);
+  }
 
   revalidateStorefront(["/admin/products"]);
-  redirect(`/admin/products?edit=${created.id}&success=added`);
+  redirect(
+    `/admin/products?edit=${productId}&success=${id ? "updated" : "added"}`,
+  );
 }
 
 export async function deleteProduct(formData: FormData) {

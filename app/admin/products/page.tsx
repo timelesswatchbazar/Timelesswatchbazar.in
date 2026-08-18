@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { DeleteProductButton } from "@/components/admin/delete-product-button";
-import { ImageUploadField } from "@/components/admin/image-upload-field";
 import {
   HasVariantsRadios,
+  ProductBaseCommerceFields,
   ProductVariantsOptionProvider,
-  ProductVariantsPanelSlot,
+  ProductVariationsSection,
 } from "@/components/admin/product-variants-option";
 import { AdminSubmitButton } from "@/components/admin/submit-button";
 import {
@@ -95,128 +95,98 @@ export default async function AdminProductsPage({ searchParams }: Props) {
         </p>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,380px)_1fr]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,440px)_1fr]">
         <ProductVariantsOptionProvider
           key={editing?.id || "new-product"}
           initialEnabled={Boolean(editing?.has_variants) || variants.length > 0}
         >
-        <div>
-        <section className="h-fit rounded-lg border border-[var(--silver)] bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-bold">
-            {editing ? "Edit product" : "Add product"}
-          </h2>
-          <form action={saveProduct} className="mt-4 space-y-3">
-            {editing && <input type="hidden" name="id" value={editing.id} />}
-            <Field label="Name" name="name" defaultValue={editing?.name} required />
-            <Field label="Slug" name="slug" defaultValue={editing?.slug} placeholder="auto-from-name" />
-            <div>
-              <label className="mb-1 block text-sm font-semibold">Category</label>
-              <select
-                name="category_id"
-                defaultValue={editing?.category_id ?? ""}
-                className="w-full rounded-md border border-[var(--silver)] px-3 py-2 text-sm"
-              >
-                <option value="">Uncategorized</option>
-                {(categories || []).map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-semibold">Description</label>
-              <textarea
-                name="description"
-                rows={3}
-                defaultValue={editing?.description}
-                className="w-full rounded-md border border-[var(--silver)] px-3 py-2 text-sm"
-              />
-            </div>
-            <ImageUploadField
-              name="image_url"
-              bucket="product-images"
-              defaultValue={editing?.image_url}
-              label="Product image"
-            />
-            <div className="grid grid-cols-2 gap-3">
+          <section className="h-fit rounded-lg border border-[var(--silver)] bg-white p-5 shadow-sm">
+            <h2 className="text-lg font-bold">
+              {editing ? "Edit product" : "Add product"}
+            </h2>
+            <form id="admin-product-form" action={saveProduct} className="mt-4 space-y-3">
+              {editing && <input type="hidden" name="id" value={editing.id} />}
+              <Field label="Name" name="name" defaultValue={editing?.name} required />
               <Field
-                label="Actual price (₹)"
-                name="actual_price"
-                type="number"
-                step="0.01"
-                defaultValue={editing ? String(editing.actual_price) : ""}
-                required
+                label="Slug"
+                name="slug"
+                defaultValue={editing?.slug}
+                placeholder="auto-from-name"
               />
-              <Field
-                label="Sale price (₹)"
-                name="sale_price"
-                type="number"
-                step="0.01"
-                defaultValue={editing ? String(editing.sale_price) : ""}
-                required
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <Field
-                label="Stock"
-                name="stock"
-                type="number"
-                defaultValue={editing ? String(editing.stock) : "0"}
-              />
+              <div>
+                <label className="mb-1 block text-sm font-semibold">Category</label>
+                <select
+                  name="category_id"
+                  defaultValue={editing?.category_id ?? ""}
+                  className="w-full rounded-md border border-[var(--silver)] px-3 py-2 text-sm"
+                >
+                  <option value="">Uncategorized</option>
+                  {(categories || []).map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-semibold">Description</label>
+                <textarea
+                  name="description"
+                  rows={3}
+                  defaultValue={editing?.description}
+                  className="w-full rounded-md border border-[var(--silver)] px-3 py-2 text-sm"
+                />
+              </div>
+
+              <HasVariantsRadios />
+              <ProductBaseCommerceFields editing={editing} />
+              <ProductVariationsSection initialVariants={variants} />
+
               <Field
                 label="Sort order"
                 name="sort_order"
                 type="number"
                 defaultValue={editing ? String(editing.sort_order) : "0"}
               />
-            </div>
-            <label className="flex items-center gap-2 text-sm font-medium">
-              <input
-                type="checkbox"
-                name="is_new_arrival"
-                defaultChecked={editing?.is_new_arrival ?? false}
-              />
-              New arrival
-            </label>
-            <label className="flex items-center gap-2 text-sm font-medium">
-              <input
-                type="checkbox"
-                name="is_best_seller"
-                defaultChecked={editing?.is_best_seller ?? false}
-              />
-              Best seller
-            </label>
-            <label className="flex items-center gap-2 text-sm font-medium">
-              <input
-                type="checkbox"
-                name="is_active"
-                defaultChecked={editing?.is_active ?? true}
-              />
-              Active (visible in store)
-            </label>
+              <label className="flex items-center gap-2 text-sm font-medium">
+                <input
+                  type="checkbox"
+                  name="is_new_arrival"
+                  defaultChecked={editing?.is_new_arrival ?? false}
+                />
+                New arrival
+              </label>
+              <label className="flex items-center gap-2 text-sm font-medium">
+                <input
+                  type="checkbox"
+                  name="is_best_seller"
+                  defaultChecked={editing?.is_best_seller ?? false}
+                />
+                Best seller
+              </label>
+              <label className="flex items-center gap-2 text-sm font-medium">
+                <input
+                  type="checkbox"
+                  name="is_active"
+                  defaultChecked={editing?.is_active ?? true}
+                />
+                Active (visible in store)
+              </label>
 
-            <HasVariantsRadios />
-
-            <AdminSubmitButton
-              label={editing ? "Update product" : "Add product"}
-              pendingLabel={editing ? "Updating…" : "Adding product…"}
-            />
-            {editing && (
-              <Link href="/admin/products" className="block text-center text-sm text-[var(--navy)]">
-                Cancel edit
-              </Link>
-            )}
-          </form>
-        </section>
-
-        <ProductVariantsPanelSlot
-          productId={editing?.id}
-          productStock={Number(editing?.stock) || 0}
-          variants={variants}
-          editingVariantId={params.variant}
-        />
-        </div>
+              <AdminSubmitButton
+                label={editing ? "Save product" : "Create product"}
+                pendingLabel={editing ? "Saving…" : "Creating product…"}
+              />
+              {editing && (
+                <Link
+                  href="/admin/products"
+                  className="block text-center text-sm text-[var(--navy)]"
+                >
+                  Cancel edit
+                </Link>
+              )}
+            </form>
+          </section>
         </ProductVariantsOptionProvider>
 
         <section className="overflow-hidden rounded-lg border border-[var(--silver)] bg-white shadow-sm">
@@ -249,7 +219,9 @@ export default async function AdminProductsPage({ searchParams }: Props) {
                           <div>
                             <p className="font-semibold text-[var(--midnight)]">{product.name}</p>
                             <p className="text-xs text-[var(--muted)]">
-                              {product.categories?.name || "Uncategorized"} · stock {product.stock}
+                              {product.categories?.name || "Uncategorized"} · stock{" "}
+                              {product.stock}
+                              {product.has_variants ? " · colors" : ""}
                             </p>
                           </div>
                         </div>
