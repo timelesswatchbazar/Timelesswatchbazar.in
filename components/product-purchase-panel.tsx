@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { AddToCartButton } from "@/components/add-to-cart-button";
+import { ProductImageZoom } from "@/components/product-image-zoom";
 import {
   discountPercent,
   resolveVariantPricing,
@@ -91,21 +92,12 @@ export function ProductPurchasePanel({ product }: { product: StoreProduct }) {
   return (
     <>
       <div className="space-y-3">
-        {/* Smaller, balanced main image — contain so the watch isn't cropped */}
-        <div className="relative mx-auto flex aspect-square max-h-[min(52vh,420px)] w-full max-w-md items-center justify-center overflow-hidden rounded-md border border-[var(--silver)] bg-[var(--surface)] sm:max-h-[min(56vh,460px)] lg:max-h-[480px] lg:max-w-none">
-          <Image
-            key={imageSrc}
-            src={imageSrc}
-            alt={
-              variantLabel ? `${product.name} — ${variantLabel}` : product.name
-            }
-            fill
-            priority
-            className="object-contain p-3 sm:p-4"
-            sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 420px"
-            unoptimized={imageSrc.includes("supabase.co")}
-          />
-        </div>
+        <ProductImageZoom
+          key={imageSrc}
+          src={imageSrc}
+          alt={variantLabel ? `${product.name} — ${variantLabel}` : product.name}
+          unoptimized={imageSrc.includes("supabase.co")}
+        />
 
         {/* A. Gallery thumbnails — images of the selected variation only */}
         {galleryImages.length > 1 && (

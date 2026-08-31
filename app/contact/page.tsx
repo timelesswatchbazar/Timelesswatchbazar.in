@@ -2,14 +2,36 @@
 
 import { FormEvent, useState } from "react";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import { submitContactForm } from "@/lib/contact/actions";
 import { SITE_EMAIL, SITE_PHONE_DISPLAY, SITE_PHONE_E164 } from "@/lib/site";
 
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-  const onSubmit = (e: FormEvent) => {
+  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setSubmitting(true);
+    setError("");
+
+    const form = new FormData(e.currentTarget);
+    const result = await submitContactForm({
+      name: String(form.get("name") || ""),
+      email: String(form.get("email") || ""),
+      phone: String(form.get("phone") || ""),
+      message: String(form.get("message") || ""),
+    });
+
+    setSubmitting(false);
+
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+
     setSubmitted(true);
+    e.currentTarget.reset();
   };
 
   const fieldClass =
@@ -32,7 +54,12 @@ export default function ContactPage() {
           >
             {submitted ? (
               <p className="rounded-md bg-[var(--surface)] px-4 py-3 text-sm font-medium text-[var(--navy)]">
-                Thanks! Your message has been received. We&apos;ll get back to you soon.
+                Thanks! Your message has been emailed to us. We&apos;ll get back to you soon.
+              </p>
+            ) : null}
+            {error ? (
+              <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                {error}
               </p>
             ) : null}
             <div>
@@ -59,8 +86,8 @@ export default function ContactPage() {
               </label>
               <textarea id="message" name="message" required rows={5} className={fieldClass} />
             </div>
-            <button type="submit" className="checkout-submit">
-              Submit
+            <button type="submit" className="checkout-submit" disabled={submitting}>
+              {submitting ? "Sending…" : "Submit"}
             </button>
           </form>
         </ScrollReveal>

@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { sendOrderEmails } from "@/lib/email";
+import { createServiceClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
@@ -29,7 +31,18 @@ export async function placeOrder(input: {
     return { ok: false as const, error: "Supabase is not configured yet." };
   }
 
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return {
+      ok: false as const,
+      error: "Checkout is not fully configured. Missing service role key.",
+    };
+  }
+
+  // Public catalog reads use the anon/session client (RLS-safe).
   const supabase = await createClient();
+  // Customer/order writes use service role — anon INSERT…RETURNING fails
+  // because customers has no public SELECT policy after insert.
+  const db = createServiceClient();
 
   if (!input.items.length) {
     return { ok: false as const, error: "Cart is empty." };
@@ -118,7 +131,7 @@ export async function placeOrder(input: {
     const email = input.customerEmail.trim().toLowerCase();
     let customerId: string | null = null;
 
-    const { data: existing } = await supabase
+    const { data: existing } = await db
       .from("customers")
       .select("id")
       .ilike("email", email)
@@ -126,7 +139,7 @@ export async function placeOrder(input: {
 
     if (existing?.id) {
       customerId = existing.id;
-      await supabase
+      await db
         .from("customers")
         .update({
           full_name: input.customerName,
@@ -136,7 +149,7 @@ export async function placeOrder(input: {
         })
         .eq("id", existing.id);
     } else {
-      const { data: created, error: customerError } = await supabase
+      const { data: created, error: customerError } = await db
         .from("customers")
         .insert({
           full_name: input.customerName,
@@ -154,7 +167,7 @@ export async function placeOrder(input: {
       customerId = created.id;
     }
 
-    const { data: order, error: orderError } = await supabase
+    const { data: order, error: orderError } = await db
       .from("orders")
       .insert({
         customer_id: customerId,
@@ -179,13 +192,32 @@ export async function placeOrder(input: {
       return { ok: false as const, error: orderError?.message || "Order failed." };
     }
 
-    const { error: itemsError } = await supabase.from("order_items").insert(
+    const { error: itemsError } = await db.from("order_items").insert(
       lines.map((line) => ({ ...line, order_id: order.id })),
     );
 
     if (itemsError) {
       return { ok: false as const, error: itemsError.message };
     }
+
+    // Emails must not block a successful order if Resend is down / misconfigured.
+    await sendOrderEmails({
+      orderNumber: order.order_number,
+      orderId: order.id,
+      customerName: input.customerName,
+      customerEmail: email,
+      customerPhone: input.customerPhone,
+      shippingAddress: input.shippingAddress,
+      city: input.city,
+      notes: input.notes,
+      total: subtotal,
+      lines: lines.map((line) => ({
+        product_name: line.product_name,
+        quantity: line.quantity,
+        unit_price: line.unit_price,
+        line_total: line.line_total,
+      })),
+    });
 
     revalidatePath("/admin/orders");
     revalidatePath("/admin/customers");

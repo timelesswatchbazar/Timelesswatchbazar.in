@@ -62,8 +62,8 @@ export default function CartPage() {
         <div className="mt-6 rounded-md border border-emerald-200 bg-emerald-50 p-5">
           <p className="font-bold text-emerald-900">Order placed successfully</p>
           <p className="mt-1 text-sm text-emerald-800">
-            Your order number is <strong>{success.orderNumber}</strong>. We will contact you
-            shortly.
+            Your order number is <strong>{success.orderNumber}</strong>. A confirmation email
+            with order details has been sent to you.
           </p>
           <Link href="/products" className="btn-soft mt-4 inline-flex max-w-xs">
             Continue Shopping
