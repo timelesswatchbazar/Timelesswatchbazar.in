@@ -8,12 +8,9 @@ function getResend() {
   return new Resend(key);
 }
 
-/** From address. Use a verified Resend domain in production. */
+/** From address. Match Resend test sender until a domain is verified. */
 function fromAddress() {
-  return (
-    process.env.RESEND_FROM_EMAIL?.trim() ||
-    `${SITE_NAME} <onboarding@resend.dev>`
-  );
+  return process.env.RESEND_FROM_EMAIL?.trim() || "onboarding@resend.dev";
 }
 
 function storeInbox() {
