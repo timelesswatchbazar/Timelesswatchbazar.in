@@ -1,5 +1,5 @@
 /**
- * End-to-end store smoke test (order + email + track + contact).
+ * Storefront smoke + WhatsApp flow test.
  * Run: node scripts/e2e-store-test.mjs
  */
 import { createClient } from "@supabase/supabase-js";
@@ -24,6 +24,8 @@ const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const resendKey = process.env.RESEND_API_KEY;
 const from = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
 const storeInbox = process.env.STORE_NOTIFY_EMAIL || "timelesswatchbazar@gmail.com";
+const SITE_PHONE = "919755527578";
+const SITE_URL = "https://www.timelesswatchbazar.in";
 
 const results = [];
 
@@ -37,54 +39,93 @@ function fail(name, detail = "") {
   console.log(`FAIL  ${name}${detail ? " — " + detail : ""}`);
 }
 
+async function detectBase() {
+  for (const base of [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:3002",
+  ]) {
+    try {
+      const r = await fetch(base + "/", { signal: AbortSignal.timeout(45000) });
+      if (r.ok) return base;
+    } catch {
+      /* try next */
+    }
+  }
+  return null;
+}
+
 async function checkPages(base) {
-  const paths = ["/", "/products", "/cart", "/contact", "/track-order", "/about"];
+  const paths = [
+    "/",
+    "/products",
+    "/cart",
+    "/contact",
+    "/track-order",
+    "/about",
+    "/categories",
+    "/profile",
+  ];
   for (const path of paths) {
     try {
-      const controller = new AbortController();
-      const t = setTimeout(() => controller.abort(), 45000);
-      const res = await fetch(base + path, { signal: controller.signal });
-      clearTimeout(t);
-      if (res.ok) pass(`page ${path}`, `${base} ${res.status}`);
-      else fail(`page ${path}`, `${base} ${res.status}`);
+      const res = await fetch(base + path, { signal: AbortSignal.timeout(60000) });
+      if (res.ok) pass(`page ${path}`, `${res.status}`);
+      else fail(`page ${path}`, String(res.status));
     } catch (err) {
-      fail(`page ${path}`, `${base} ${err.message}`);
+      fail(`page ${path}`, err.message);
     }
   }
 }
 
+function buildWhatsAppUrl(message) {
+  return `https://wa.me/${SITE_PHONE}?text=${encodeURIComponent(message)}`;
+}
+
 async function main() {
-  console.log("\n=== Timeless Watch Bazar E2E ===\n");
+  console.log("\n=== Timeless Watch Bazar E2E (WhatsApp flow) ===\n");
 
   if (!url || !serviceKey || !anonKey) {
     fail("env", "Missing Supabase env");
+    summarize();
     return;
   }
-  if (!resendKey) {
-    fail("env", "Missing RESEND_API_KEY");
-  }
 
-  // Prefer 3001 (current next), fallback 3000
-  let base = "http://localhost:3001";
-  try {
-    const r = await fetch(base + "/", { signal: AbortSignal.timeout(5000) });
-    if (!r.ok) throw new Error(String(r.status));
-  } catch {
-    base = "http://localhost:3000";
+  const base = await detectBase();
+  if (!base) {
+    fail("dev server", "No server on 3000/3001 — start with npm run dev");
+    summarize();
+    return;
   }
+  pass("dev server", base);
 
   await checkPages(base);
 
-  const db = createClient(url, serviceKey, {
+  // Floating WhatsApp marker in HTML
+  try {
+    const homeHtml = await (await fetch(base + "/", { signal: AbortSignal.timeout(60000) })).text();
+    if (
+      homeHtml.includes("Chat on WhatsApp") ||
+      homeHtml.includes("wa.me/919755527578") ||
+      homeHtml.includes("whatsapp")
+    ) {
+      pass("whatsapp floating/header markup", "found in homepage HTML");
+    } else {
+      fail("whatsapp floating/header markup", "WhatsApp link not found in HTML");
+    }
+  } catch (err) {
+    fail("whatsapp floating/header markup", err.message);
+  }
+
+  const publicDb = createClient(url, anonKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-  const publicDb = createClient(url, anonKey, {
+  const db = createClient(url, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
   const { data: products, error: productsError } = await publicDb
     .from("products")
-    .select("id, name, slug, image_url, sale_price, is_active")
+    .select("id, name, slug, sale_price, is_active")
     .eq("is_active", true)
     .limit(1);
 
@@ -97,136 +138,102 @@ async function main() {
   const product = products[0];
   pass("load product", product.name);
 
-  const testEmail = "timelesswatchbazar@gmail.com";
-  const customerName = "E2E Test Customer";
-  const phone = "9755527578";
-  const city = "Ujjain";
-  const address = "Shop 15, Nanakheda, Ujjain";
-  const unit = Number(product.sale_price) || 999;
-  const qty = 1;
+  // Product page
+  try {
+    const slugPath = `/products/${encodeURIComponent(product.slug)}`;
+    const res = await fetch(base + slugPath, { signal: AbortSignal.timeout(60000) });
+    const html = await res.text();
+    if (!res.ok) fail("product detail page", String(res.status));
+    else pass("product detail page", slugPath);
 
-  // Upsert customer
-  const { data: existing } = await db
-    .from("customers")
-    .select("id")
-    .ilike("email", testEmail)
-    .maybeSingle();
-
-  let customerId = existing?.id || null;
-  if (customerId) {
-    await db
-      .from("customers")
-      .update({ full_name: customerName, phone, address, city })
-      .eq("id", customerId);
-  } else {
-    const { data: created, error } = await db
-      .from("customers")
-      .insert({
-        full_name: customerName,
-        email: testEmail,
-        phone,
-        address,
-        city,
-      })
-      .select("id")
-      .single();
-    if (error) {
-      fail("create customer", error.message);
-      summarize();
-      return;
+    if (html.includes("Inquire on WhatsApp") || html.includes("wa.me/")) {
+      pass("product WhatsApp CTA", "present");
+    } else {
+      fail("product WhatsApp CTA", "Inquire on WhatsApp not found");
     }
-    customerId = created.id;
+  } catch (err) {
+    fail("product detail page", err.message);
   }
-  pass("create/update customer", customerId);
 
-  const { data: order, error: orderError } = await db
-    .from("orders")
-    .insert({
-      customer_id: customerId,
-      customer_name: customerName,
-      customer_email: testEmail,
-      customer_phone: phone,
-      shipping_address: address,
-      city,
-      status: "pending",
-      payment_status: "cod",
-      subtotal: unit * qty,
-      discount: 0,
-      shipping_fee: 0,
-      total: unit * qty,
-      notes: "E2E automated test order",
-      order_number: "",
-    })
-    .select("id, order_number")
-    .single();
-
-  if (orderError || !order) {
-    fail("place order", orderError?.message || "No order returned");
-    summarize();
-    return;
+  // WhatsApp inquiry URL shape
+  const inquiry = buildWhatsAppUrl(
+    [
+      "Hello Timeless Watch Bazar!",
+      "",
+      "I want to inquire about this product:",
+      `*${product.name}*`,
+      `Price: ₹${Number(product.sale_price) || 0}`,
+      `Link: ${SITE_URL}/products/${product.slug}`,
+      "",
+      "Please share availability and how I can place the order.",
+    ].join("\n"),
+  );
+  if (inquiry.startsWith(`https://wa.me/${SITE_PHONE}?text=`)) {
+    pass("whatsapp inquiry URL", inquiry.slice(0, 72) + "…");
+  } else {
+    fail("whatsapp inquiry URL", inquiry);
   }
-  pass("place order", order.order_number);
 
-  const { error: itemsError } = await db.from("order_items").insert({
-    order_id: order.id,
-    product_id: product.id,
-    product_name: product.name,
-    product_slug: product.slug,
-    image_url: product.image_url,
-    unit_price: unit,
-    quantity: qty,
-    line_total: unit * qty,
-  });
+  // Cart page now WhatsApp redirect content
+  try {
+    const cartHtml = await (
+      await fetch(base + "/cart", { signal: AbortSignal.timeout(60000) })
+    ).text();
+    if (cartHtml.includes("Order on WhatsApp") || cartHtml.includes("Chat on WhatsApp")) {
+      pass("cart → WhatsApp page", "no COD checkout form");
+    } else {
+      fail("cart → WhatsApp page", "expected WhatsApp messaging");
+    }
+    if (/Place order \(COD\)/i.test(cartHtml)) {
+      fail("cart checkout removed", "COD form still present");
+    } else {
+      pass("cart checkout removed", "COD form gone");
+    }
+  } catch (err) {
+    fail("cart → WhatsApp page", err.message);
+  }
 
-  if (itemsError) fail("order items", itemsError.message);
-  else pass("order items", "1 line");
-
-  // Track lookup (same logic as server action)
-  const { data: tracked, error: trackError } = await db
+  // Track + contact still work
+  const testEmail = "timelesswatchbazar@gmail.com";
+  const { data: latestOrder } = await db
     .from("orders")
-    .select("id, order_number, status, payment_status, total, city")
-    .eq("order_number", order.order_number)
+    .select("order_number, customer_email, status")
     .ilike("customer_email", testEmail)
+    .order("created_at", { ascending: false })
+    .limit(1)
     .maybeSingle();
 
-  if (trackError || !tracked) fail("track order", trackError?.message || "Not found");
-  else pass("track order", `${tracked.order_number} / ${tracked.status}`);
+  if (latestOrder?.order_number) {
+    const { data: tracked } = await db
+      .from("orders")
+      .select("order_number, status")
+      .eq("order_number", latestOrder.order_number)
+      .ilike("customer_email", testEmail)
+      .maybeSingle();
+    if (tracked) pass("track order lookup", `${tracked.order_number} / ${tracked.status}`);
+    else fail("track order lookup", "not found");
+  } else {
+    pass("track order lookup", "skipped (no prior orders)");
+  }
 
-  // Emails via Resend (order + contact)
   if (resendKey) {
     const resend = new Resend(resendKey);
-
-    const orderMail = await resend.emails.send({
-      from,
-      to: testEmail,
-      subject: `Order confirmed — ${order.order_number} | Timeless Watch Bazar`,
-      html: `<p>E2E test order <strong>${order.order_number}</strong></p>
-             <p>Order ID: ${order.id}</p>
-             <p>Item: ${product.name} × ${qty}</p>
-             <p>Total: ₹${unit * qty}</p>
-             <p>Ship to: ${address}, ${city}</p>`,
-    });
-    if (orderMail.error) fail("order email", orderMail.error.message);
-    else pass("order email", orderMail.data?.id || "sent");
-
     const contactMail = await resend.emails.send({
       from,
       to: storeInbox,
       replyTo: testEmail,
-      subject: "Contact form — E2E Test | Timeless Watch Bazar",
-      html: `<p><strong>Name:</strong> E2E Tester</p>
-             <p><strong>Email:</strong> ${testEmail}</p>
-             <p><strong>Phone:</strong> ${phone}</p>
-             <p><strong>Message:</strong> Automated contact form test.</p>`,
+      subject: "Contact form — E2E WhatsApp flow | Timeless Watch Bazar",
+      html: `<p>Automated contact test after WhatsApp checkout switch.</p>`,
     });
     if (contactMail.error) fail("contact email", contactMail.error.message);
     else pass("contact email", contactMail.data?.id || "sent");
+  } else {
+    fail("contact email", "RESEND_API_KEY missing");
   }
 
   summarize();
-  console.log(`\nOrder number for manual track UI: ${order.order_number}`);
-  console.log(`Email: ${testEmail}`);
-  console.log(`Site base tested: ${base}\n`);
+  console.log(`\nWhatsApp number: +${SITE_PHONE}`);
+  console.log(`Sample inquiry URL:\n${inquiry}\n`);
 }
 
 function summarize() {

@@ -3,18 +3,26 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import { useCart } from "@/components/cart-context";
-import { CartIcon, SearchIcon, UserIcon } from "@/components/icons";
+import { SearchIcon, UserIcon } from "@/components/icons";
 import { categories as localCategories } from "@/lib/products";
+import { generalWhatsAppUrl } from "@/lib/whatsapp";
 import type { Category } from "@/lib/types";
 
+const NAV_LINKS = [
+  { href: "/", label: "Home" },
+  { href: "/categories", label: "Categories" },
+  { href: "/products", label: "Products" },
+  { href: "/about", label: "About Us" },
+  { href: "/contact", label: "Contact Us" },
+] as const;
+
 export function Header({ categories = localCategories }: { categories?: Category[] }) {
-  const { itemCount } = useCart();
   const router = useRouter();
   const pathname = usePathname();
   const [query, setQuery] = useState("");
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const whatsappHref = generalWhatsAppUrl();
 
   useEffect(() => {
     setMobileSearchOpen(false);
@@ -40,9 +48,13 @@ export function Header({ categories = localCategories }: { categories?: Category
 
   const closeMenu = () => setMenuOpen(false);
 
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+
   return (
     <header className="site-header sticky top-0 z-[100] border-b border-[var(--silver)] !bg-white">
-      <div className="mx-auto flex max-w-7xl items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6 sm:py-4 lg:px-8">
+      {/* Top bar: brand · search · actions */}
+      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:gap-4 sm:px-6 lg:px-8">
         <Link
           href="/"
           className="brand-text shrink-0"
@@ -51,26 +63,28 @@ export function Header({ categories = localCategories }: { categories?: Category
           <span className="block text-lg font-extrabold leading-none tracking-tight text-[var(--midnight)] sm:text-xl lg:text-2xl">
             Timeless
           </span>
-          <span className="block text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[var(--gold)] sm:text-xs">
+          <span className="mt-0.5 block text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[var(--gold)] sm:text-xs">
             Watch Bazar
           </span>
         </Link>
 
-        <div className="hidden min-w-0 flex-1 lg:flex">
-          <form className="header-search w-full max-w-2xl" role="search" onSubmit={onSearch}>
-            <input
-              placeholder="Search products"
-              aria-label="Search products"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-            <button type="submit" aria-label="Search">
-              <SearchIcon />
-            </button>
-          </form>
-        </div>
+        <form
+          className="header-search mx-auto hidden w-full max-w-md flex-1 lg:flex xl:max-w-lg"
+          role="search"
+          onSubmit={onSearch}
+        >
+          <input
+            placeholder="Search products"
+            aria-label="Search products"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <button type="submit" aria-label="Search">
+            <SearchIcon />
+          </button>
+        </form>
 
-        <div className="ml-auto flex items-center gap-2 sm:gap-3">
+        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-2.5">
           <button
             type="button"
             className="icon-action lg:hidden"
@@ -83,17 +97,13 @@ export function Header({ categories = localCategories }: { categories?: Category
           >
             <SearchIcon className="h-5 w-5" />
           </button>
-          <Link className="icon-action relative" aria-label="Open profile" href="/profile">
+          <Link className="icon-action" aria-label="Open profile" href="/profile">
             <UserIcon />
-          </Link>
-          <Link className="icon-action relative" aria-label="Open cart" href="/cart">
-            <CartIcon />
-            {itemCount > 0 && <span className="cart-badge">{itemCount}</span>}
           </Link>
         </div>
       </div>
 
-      {mobileSearchOpen && (
+      {mobileSearchOpen ? (
         <div className="border-t border-[var(--silver)] px-4 py-3 lg:hidden">
           <form className="header-search w-full" role="search" onSubmit={onSearch}>
             <input
@@ -108,85 +118,80 @@ export function Header({ categories = localCategories }: { categories?: Category
             </button>
           </form>
         </div>
-      )}
+      ) : null}
 
-      <div className="hidden border-t border-[var(--silver)] lg:block">
-        <div className="mx-auto flex max-w-7xl items-center gap-7 px-4 py-3 sm:px-6 lg:px-8">
-          <Link className="nav-link" href="/">
-            Home
-          </Link>
-
-          <div className="group relative py-2">
-            <Link className="nav-link flex items-center" href="/categories">
-              Categories
-            </Link>
-            <div className="dropdown-panel invisible absolute left-0 top-full z-[200] w-64 border border-[var(--silver)] bg-white p-3 opacity-0 shadow-xl transition group-hover:visible group-hover:opacity-100">
-              <div className="flex flex-col">
-                {categories.map((cat) => (
-                  <Link
-                    key={cat.slug}
-                    className="rounded-md px-3 py-2 text-sm font-medium text-[var(--navy)] transition hover:bg-[var(--surface)] hover:text-[var(--midnight)]"
-                    href={`/categories/${cat.slug}`}
-                  >
-                    {cat.name}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <Link className="nav-link" href="/about">
-            About Us
-          </Link>
-          <Link className="nav-link" href="/contact">
-            Contact Us
-          </Link>
-        </div>
-      </div>
-
-      <div className="relative border-t border-[var(--silver)] px-4 py-2 lg:hidden">
-        <div className="mx-auto flex max-w-7xl justify-end">
-          <details
-            className="relative"
-            open={menuOpen}
-            onToggle={(e) => setMenuOpen((e.target as HTMLDetailsElement).open)}
+      {/* Nav row */}
+      <div className="border-t border-[var(--silver)] bg-[var(--surface)]/60">
+        <div className="mx-auto flex max-w-7xl items-center px-4 sm:px-6 lg:px-8">
+          <nav
+            className="hidden w-full items-center justify-start gap-1 py-1 lg:flex"
+            aria-label="Main"
           >
-            <summary className="cursor-pointer list-none rounded-md border border-[var(--gold)] bg-white px-3 py-2 text-sm font-semibold text-[var(--midnight)] [&::-webkit-details-marker]:hidden">
-              Menu
-            </summary>
-            <div className="mobile-menu-panel absolute right-0 z-[200] mt-3 w-[min(calc(100vw-2rem),18rem)] border border-[var(--silver)] bg-white p-4 shadow-xl">
-              <nav aria-label="Mobile navigation" className="flex flex-col gap-4">
-                <Link className="nav-link" href="/" onClick={closeMenu}>
-                  Home
-                </Link>
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`nav-link ${isActive(link.href) ? "nav-link-active" : ""}`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
 
-                <div className="flex flex-col gap-2">
-                  <span className="text-sm font-bold text-[var(--midnight)]">Categories</span>
-                  {categories.map((cat) => (
+          <div className="flex w-full items-center justify-between py-2.5 lg:hidden">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted)]">
+              Menu
+            </p>
+            <details
+              className="relative"
+              open={menuOpen}
+              onToggle={(e) => setMenuOpen((e.target as HTMLDetailsElement).open)}
+            >
+              <summary className="cursor-pointer list-none rounded-md border border-[var(--silver)] bg-white px-3 py-1.5 text-sm font-semibold text-[var(--navy)] [&::-webkit-details-marker]:hidden">
+                Browse
+              </summary>
+              <div className="absolute right-0 z-50 mt-2 w-64 rounded-md border border-[var(--silver)] bg-white p-2 shadow-lg">
+                <nav className="flex flex-col">
+                  {NAV_LINKS.map((link) => (
                     <Link
-                      key={cat.slug}
-                      className="text-sm font-medium text-[var(--navy)]"
-                      href={`/categories/${cat.slug}`}
+                      key={link.href}
+                      className="rounded-md px-3 py-2.5 text-sm font-semibold text-[var(--navy)] hover:bg-[var(--surface)]"
+                      href={link.href}
                       onClick={closeMenu}
                     >
-                      {cat.name}
+                      {link.label}
                     </Link>
                   ))}
-                </div>
 
-                <Link className="nav-link" href="/about" onClick={closeMenu}>
-                  About Us
-                </Link>
-                <Link className="nav-link" href="/contact" onClick={closeMenu}>
-                  Contact Us
-                </Link>
+                  <div className="my-2 border-t border-[var(--silver)] pt-2">
+                    <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]">
+                      Categories
+                    </p>
+                    {categories.map((cat) => (
+                      <Link
+                        key={cat.slug}
+                        className="block rounded-md px-3 py-2 text-sm text-[var(--navy)] hover:bg-[var(--surface)]"
+                        href={`/categories/${cat.slug}`}
+                        onClick={closeMenu}
+                      >
+                        {cat.name}
+                      </Link>
+                    ))}
+                  </div>
 
-                <Link className="btn-soft" href="/cart" onClick={closeMenu}>
-                  Cart{itemCount > 0 ? ` (${itemCount})` : ""}
-                </Link>
-              </nav>
-            </div>
-          </details>
+                  <a
+                    className="btn-soft mt-1 text-center text-sm"
+                    href={whatsappHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={closeMenu}
+                  >
+                    Chat on WhatsApp
+                  </a>
+                </nav>
+              </div>
+            </details>
+          </div>
         </div>
       </div>
     </header>

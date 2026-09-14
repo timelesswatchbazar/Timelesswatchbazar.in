@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
-import { AddToCartButton } from "@/components/add-to-cart-button";
+import { WhatsAppInquireButton } from "@/components/whatsapp-inquire-button";
 import { ProductImageZoom } from "@/components/product-image-zoom";
 import {
   discountPercent,
@@ -211,18 +211,18 @@ export function ProductPurchasePanel({ product }: { product: StoreProduct }) {
               {formatMoney(pricing.price)}
             </span>
           </div>
-          <AddToCartButton
+          <WhatsAppInquireButton
             product={cartProduct}
             disabled={!canAdd || outOfStock}
-            label={outOfStock ? "Unavailable" : "Add to Cart"}
+            label={outOfStock ? "Unavailable" : "Inquire on WhatsApp"}
             className={`btn-soft ${!canAdd || outOfStock ? "pointer-events-none opacity-50" : ""}`}
           />
         </div>
 
         <ul className="mt-6 space-y-2 text-sm text-[var(--muted)] sm:mt-8">
           <li>✓ Authentic timepieces</li>
-          <li>✓ Secure checkout</li>
-          <li>✓ Fast processing across India</li>
+          <li>✓ Direct WhatsApp ordering</li>
+          <li>✓ Fast response across India</li>
           <li>✓ Cash on delivery available</li>
         </ul>
       </div>

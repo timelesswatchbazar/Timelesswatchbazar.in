@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
+import { WhatsAppFloatingButton } from "@/components/whatsapp-floating-button";
 import type { Category } from "@/lib/types";
 
 export function StoreShell({
@@ -24,6 +25,7 @@ export function StoreShell({
       <Header categories={categories} />
       <main className="flex-1">{children}</main>
       <Footer />
+      <WhatsAppFloatingButton />
     </>
   );
 }

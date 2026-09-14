@@ -16,7 +16,7 @@ export function Footer() {
           <p className="mt-4 max-w-md text-sm leading-6 text-[var(--silver)]">
             Timeless Watch Bazar is your trusted destination for men&apos;s, women&apos;s,
             luxury, smart, and sports watches. We bring quality timepieces, great value,
-            and a seamless shopping experience to customers worldwide.
+            and WhatsApp ordering for customers across India.
           </p>
         </div>
         <div>

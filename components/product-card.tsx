@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { AddToCartButton } from "@/components/add-to-cart-button";
+import { WhatsAppInquireButton } from "@/components/whatsapp-inquire-button";
 import { formatMoney } from "@/lib/money";
 import { discountPercent } from "@/lib/database.types";
 import type { Product } from "@/lib/types";
@@ -80,7 +80,7 @@ export function ProductCard({ product }: { product: Product }) {
               Select option
             </Link>
           ) : (
-            <AddToCartButton product={product} />
+            <WhatsAppInquireButton product={product} className="btn-soft block text-center text-sm" />
           )}
         </div>
       </div>

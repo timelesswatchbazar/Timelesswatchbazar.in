@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Your Cart",
-  description: "Review items in your Timeless Watch Bazar cart and place a COD order.",
+  title: "Order on WhatsApp",
+  description:
+    "Inquire and order watches from Timeless Watch Bazar directly on WhatsApp.",
   robots: { index: false, follow: false },
   alternates: { canonical: "/cart" },
 };
