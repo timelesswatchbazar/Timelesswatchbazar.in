@@ -73,7 +73,9 @@ export async function trackOrder(input: {
     order: {
       orderNumber: order.order_number,
       status: order.status as OrderStatus,
-      paymentStatus: order.payment_status,
+      paymentStatus: String(order.payment_status).toLowerCase() === "cod"
+        ? "unpaid"
+        : order.payment_status,
       total: Number(order.total),
       customerName: order.customer_name,
       city: order.city,

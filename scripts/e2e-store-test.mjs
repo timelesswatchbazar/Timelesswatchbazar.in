@@ -179,15 +179,18 @@ async function main() {
     const cartHtml = await (
       await fetch(base + "/cart", { signal: AbortSignal.timeout(60000) })
     ).text();
-    if (cartHtml.includes("Order on WhatsApp") || cartHtml.includes("Chat on WhatsApp")) {
-      pass("cart → WhatsApp page", "no COD checkout form");
+    if (
+      cartHtml.includes("Order on WhatsApp") ||
+      cartHtml.includes("Chat on WhatsApp")
+    ) {
+      pass("cart → WhatsApp page", "no checkout form");
     } else {
       fail("cart → WhatsApp page", "expected WhatsApp messaging");
     }
-    if (/Place order \(COD\)/i.test(cartHtml)) {
-      fail("cart checkout removed", "COD form still present");
+    if (/Place order/i.test(cartHtml) && /customerEmail|shippingAddress/i.test(cartHtml)) {
+      fail("cart checkout removed", "old checkout form still present");
     } else {
-      pass("cart checkout removed", "COD form gone");
+      pass("cart checkout removed", "checkout form gone");
     }
   } catch (err) {
     fail("cart → WhatsApp page", err.message);

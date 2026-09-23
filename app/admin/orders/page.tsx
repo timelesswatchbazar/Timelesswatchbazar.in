@@ -88,7 +88,9 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
                   <td className="px-4 py-3 capitalize">
                     {order.status}
                     <span className="mt-0.5 block text-xs text-[var(--muted)]">
-                      {order.payment_status}
+                      {String(order.payment_status).toLowerCase() === "cod"
+                        ? "unpaid"
+                        : order.payment_status}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-[var(--muted)]">

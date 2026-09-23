@@ -16,7 +16,11 @@ const faqs = [
   },
   {
     q: "What payment methods do you accept?",
-    a: "We support common online payment methods and cash on delivery where available.",
+    a: "Payment details are shared when you inquire on WhatsApp.",
+  },
+  {
+    q: "Can I return or exchange a watch?",
+    a: "No. Timeless Watch Bazar follows a strict no return and no exchange policy. All sales are final. Please review the product carefully before ordering.",
   },
   {
     q: "How long does delivery take?",

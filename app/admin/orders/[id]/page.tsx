@@ -24,6 +24,8 @@ export default async function AdminOrderDetailPage({ params, searchParams }: Pro
   if (!order) notFound();
 
   const row = order as OrderRow & { order_items: OrderItemRow[] };
+  const paymentStatus =
+    String(row.payment_status).toLowerCase() === "cod" ? "unpaid" : row.payment_status;
 
   return (
     <AdminShell title={`Order ${row.order_number}`}>
@@ -154,10 +156,10 @@ export default async function AdminOrderDetailPage({ params, searchParams }: Pro
               <label className="mb-1 block text-sm font-semibold">Payment</label>
               <select
                 name="payment_status"
-                defaultValue={row.payment_status}
+                defaultValue={paymentStatus}
                 className="w-full rounded-md border border-[var(--silver)] px-3 py-2 text-sm"
               >
-                {["cod", "unpaid", "paid", "refunded"].map((s) => (
+                {["unpaid", "paid", "refunded"].map((s) => (
                   <option key={s} value={s}>
                     {s}
                   </option>

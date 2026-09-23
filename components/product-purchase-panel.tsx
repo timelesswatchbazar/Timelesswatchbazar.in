@@ -223,7 +223,7 @@ export function ProductPurchasePanel({ product }: { product: StoreProduct }) {
           <li>✓ Authentic timepieces</li>
           <li>✓ Direct WhatsApp ordering</li>
           <li>✓ Fast response across India</li>
-          <li>✓ Cash on delivery available</li>
+          <li>✓ No return, no exchange</li>
         </ul>
       </div>
     </>

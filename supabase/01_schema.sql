@@ -95,7 +95,7 @@ create table if not exists public.orders (
   status text not null default 'pending'
     check (status in ('pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled')),
   payment_status text not null default 'unpaid'
-    check (payment_status in ('unpaid', 'paid', 'refunded', 'cod')),
+    check (payment_status in ('unpaid', 'paid', 'refunded')),
   subtotal numeric(12, 2) not null default 0 check (subtotal >= 0),
   discount numeric(12, 2) not null default 0 check (discount >= 0),
   shipping_fee numeric(12, 2) not null default 0 check (shipping_fee >= 0),

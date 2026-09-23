@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     "luxury watches",
     "watch store India",
     "Timeless Watch Bazar",
-    "COD watches India",
+    "WhatsApp watch order India",
   ],
   authors: [{ name: SITE_NAME, url: SITE_URL }],
   creator: SITE_NAME,

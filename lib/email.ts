@@ -63,7 +63,7 @@ function orderDetailsBlock(order: OrderEmailPayload) {
   return `
     <p style="margin:0 0 8px;"><strong>Order number:</strong> ${escapeHtml(order.orderNumber)}</p>
     <p style="margin:0 0 8px;"><strong>Order ID:</strong> ${escapeHtml(order.orderId)}</p>
-    <p style="margin:0 0 8px;"><strong>Payment:</strong> Cash on Delivery (COD)</p>
+    <p style="margin:0 0 8px;"><strong>Payment:</strong> As confirmed on WhatsApp</p>
     <p style="margin:0 0 16px;"><strong>Total:</strong> ${formatMoney(order.total)}</p>
     <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:14px;">
       <thead>
@@ -120,7 +120,7 @@ export async function sendOrderEmails(order: OrderEmailPayload) {
 
   const storeHtml = `
     <div style="font-family:Arial,Helvetica,sans-serif;color:#111827;max-width:640px;margin:0 auto;">
-      <h1 style="font-size:22px;margin:0 0 12px;">New COD order</h1>
+      <h1 style="font-size:22px;margin:0 0 12px;">New order</h1>
       <p style="margin:0 0 16px;">A new order was placed on ${SITE_NAME}.</p>
       ${details}
     </div>

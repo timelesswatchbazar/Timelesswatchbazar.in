@@ -82,7 +82,7 @@ export type OrderStatus =
   | "delivered"
   | "cancelled";
 
-export type PaymentStatus = "unpaid" | "paid" | "refunded" | "cod";
+export type PaymentStatus = "unpaid" | "paid" | "refunded";
 
 export type OrderRow = {
   id: string;

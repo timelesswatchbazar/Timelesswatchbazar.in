@@ -448,7 +448,11 @@ export async function updateOrderStatus(formData: FormData) {
   const { supabase } = await requireAdmin();
   const id = String(formData.get("id") || "");
   const status = String(formData.get("status") || "");
-  const paymentStatus = String(formData.get("payment_status") || "");
+  let paymentStatus = String(formData.get("payment_status") || "").toLowerCase();
+  if (paymentStatus === "cod") paymentStatus = "unpaid";
+  if (!["unpaid", "paid", "refunded"].includes(paymentStatus)) {
+    paymentStatus = "unpaid";
+  }
 
   if (!id) redirect("/admin/orders");
 

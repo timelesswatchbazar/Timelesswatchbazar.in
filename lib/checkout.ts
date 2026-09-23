@@ -177,7 +177,7 @@ export async function placeOrder(input: {
         shipping_address: input.shippingAddress,
         city: input.city,
         status: "pending",
-        payment_status: "cod",
+        payment_status: "unpaid",
         subtotal,
         discount: 0,
         shipping_fee: 0,

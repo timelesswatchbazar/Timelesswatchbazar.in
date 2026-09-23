@@ -82,6 +82,12 @@ export function Footer() {
             >
               Shipping Policy
             </Link>
+            <Link
+              className="w-fit text-sm text-[var(--silver)] transition hover:text-white"
+              href="/return-policy"
+            >
+              Return & Exchange Policy
+            </Link>
           </nav>
         </div>
         <div>

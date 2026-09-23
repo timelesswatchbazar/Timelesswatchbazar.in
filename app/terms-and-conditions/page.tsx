@@ -17,7 +17,14 @@ export default function TermsPage() {
       <p>
         Product availability and pricing may change without notice. Images are for
         illustration; minor variations can occur. Orders are confirmed after successful
-        payment or COD acceptance.
+        payment as shared during WhatsApp ordering.
+      </p>
+      <p>
+        All purchases are subject to our{" "}
+        <a href="/return-policy" className="font-semibold text-zinc-950 underline">
+          no return and no exchange policy
+        </a>
+        . Sales are final once an order is confirmed.
       </p>
       <p>
         Misuse of the website, fraudulent activity, or abuse of promotions may result in

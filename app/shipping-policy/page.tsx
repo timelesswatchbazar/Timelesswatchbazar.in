@@ -17,8 +17,16 @@ export default function ShippingPolicyPage() {
         depending on your location and product availability.
       </p>
       <p>
-        Shipping fees, if any, are shown at checkout. You will receive updates once your
-        order is dispatched. For special delivery requests, please contact support.
+        Shipping fees, if any, are confirmed when you place your order on WhatsApp. You
+        will receive updates once your order is dispatched. For special delivery requests,
+        please contact support.
+      </p>
+      <p>
+        Please note our{" "}
+        <a href="/return-policy" className="font-semibold text-zinc-950 underline">
+          no return and no exchange policy
+        </a>{" "}
+        applies to all deliveries.
       </p>
     </PolicyPage>
   );
