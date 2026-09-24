@@ -9,6 +9,7 @@ import {
   type ProductVariantRow,
   type StoreProduct,
 } from "@/lib/database.types";
+import { categorySlugMatches } from "@/lib/slug";
 import type { Category } from "@/lib/types";
 
 const PRODUCT_SELECT_BASE = `
@@ -257,7 +258,7 @@ export async function fetchBestSellers(): Promise<StoreProduct[]> {
 
 export async function fetchByCategory(slug: string): Promise<StoreProduct[]> {
   const all = await fetchStoreProducts();
-  return all.filter((p) => p.category === slug);
+  return all.filter((p) => categorySlugMatches(p.category, slug));
 }
 
 export const fetchCategories = cache(async (): Promise<Category[]> => {

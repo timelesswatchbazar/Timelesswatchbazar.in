@@ -10,6 +10,7 @@ import {
   fetchStoreProduct,
   fetchStoreProducts,
 } from "@/lib/catalog";
+import { categoryHref, categorySlugMatches, findCategoryBySlug } from "@/lib/slug";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -54,7 +55,8 @@ export default async function ProductDetailPage({ params }: Props) {
 
   const categories = await fetchCategories();
   const category =
-    categories.find((c) => c.slug === product.category) ||
+    findCategoryBySlug(categories, product.category) ||
+    categories.find((c) => categorySlugMatches(product.category, c.slug)) ||
     (product.categoryName
       ? { slug: product.category, name: product.categoryName, description: "" }
       : undefined);
@@ -111,7 +113,7 @@ export default async function ProductDetailPage({ params }: Props) {
         {category && (
           <>
             <Link
-              href={`/categories/${category.slug}`}
+              href={categoryHref(category)}
               className="shrink-0 hover:text-[var(--midnight)]"
             >
               {category.name}
@@ -125,7 +127,7 @@ export default async function ProductDetailPage({ params }: Props) {
       <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
         {category && (
           <div className="lg:col-span-2">
-            <Link href={`/categories/${category.slug}`} className="section-eyebrow">
+            <Link href={categoryHref(category)} className="section-eyebrow">
               {category.name}
             </Link>
             <h1 className="mt-2 text-2xl font-bold tracking-tight text-[var(--midnight)] sm:text-4xl">

@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ProductCard } from "@/components/product-card";
 import { fetchByCategory, fetchCategories } from "@/lib/catalog";
+import {
+  categoryHref,
+  decodeRouteSlug,
+  findCategoryBySlug,
+  slugify,
+} from "@/lib/slug";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -10,24 +16,31 @@ export const revalidate = 60;
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const categories = await fetchCategories();
-  const category = categories.find((c) => c.slug === slug);
+  const category = findCategoryBySlug(categories, slug);
   if (!category) return { title: "Category not found", robots: { index: false } };
   return {
     title: category.name,
     description:
       category.description ||
       `Shop ${category.name} at Timeless Watch Bazar in India.`,
-    alternates: { canonical: `/categories/${category.slug}` },
+    alternates: { canonical: categoryHref(category) },
   };
 }
 
 export default async function CategoryPage({ params }: Props) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
   const categories = await fetchCategories();
-  const category = categories.find((c) => c.slug === slug);
+  const category = findCategoryBySlug(categories, rawSlug);
   if (!category) notFound();
 
-  const items = await fetchByCategory(slug);
+  const canonical = categoryHref(category);
+  const decoded = decodeRouteSlug(rawSlug);
+  const canonicalSlug = slugify(category.slug) || category.slug;
+  if (decoded !== canonicalSlug && slugify(decoded) === slugify(category.slug)) {
+    redirect(canonical);
+  }
+
+  const items = await fetchByCategory(category.slug);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">

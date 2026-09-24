@@ -8,6 +8,7 @@ import {
   fetchCategories,
   fetchStoreProducts,
 } from "@/lib/catalog";
+import { categoryHref, categorySlugMatches } from "@/lib/slug";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 
 export const revalidate = 60;
@@ -38,7 +39,7 @@ export default async function HomePage() {
   const categorySections = categories
     .map((category) => ({
       category,
-      products: products.filter((p) => p.category === category.slug),
+      products: products.filter((p) => categorySlugMatches(p.category, category.slug)),
     }))
     .filter((section) => section.products.length > 0);
 
@@ -68,7 +69,7 @@ export default async function HomePage() {
           key={category.slug}
           title={category.name}
           products={items}
-          href={`/categories/${category.slug}`}
+          href={categoryHref(category)}
           linkLabel="View Category"
         />
       ))}

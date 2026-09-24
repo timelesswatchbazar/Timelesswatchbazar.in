@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { fetchCategories, fetchStoreProducts } from "@/lib/catalog";
+import { categoryHref } from "@/lib/slug";
 import { SITE_URL } from "@/lib/site";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -28,7 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ]);
 
     categoryRoutes = categories.map((category) => ({
-      url: `${SITE_URL}/categories/${category.slug}`,
+      url: `${SITE_URL}${categoryHref(category)}`,
       lastModified: now,
       changeFrequency: "daily" as const,
       priority: 0.8,

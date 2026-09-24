@@ -10,6 +10,7 @@ import {
   SearchIcon,
   UserIcon,
 } from "@/components/icons";
+import { categoryHref } from "@/lib/slug";
 import { generalWhatsAppUrl } from "@/lib/whatsapp";
 import type { Category } from "@/lib/types";
 
@@ -24,13 +25,13 @@ export function Header({ categories = [] }: { categories?: Category[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const [query, setQuery] = useState("");
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileCatsOpen, setMobileCatsOpen] = useState(false);
   const whatsappHref = generalWhatsAppUrl();
 
   useEffect(() => {
-    setMobileSearchOpen(false);
+    setSearchOpen(false);
     setMenuOpen(false);
     setMobileCatsOpen(false);
   }, [pathname]);
@@ -53,7 +54,7 @@ export function Header({ categories = [] }: { categories?: Category[] }) {
     e.preventDefault();
     const q = query.trim();
     router.push(q ? `/search?q=${encodeURIComponent(q)}` : "/products");
-    setMobileSearchOpen(false);
+    setSearchOpen(false);
     setMenuOpen(false);
   };
 
@@ -76,7 +77,7 @@ export function Header({ categories = [] }: { categories?: Category[] }) {
           aria-controls="mobile-nav-drawer"
           onClick={() => {
             setMenuOpen((v) => !v);
-            setMobileSearchOpen(false);
+            setSearchOpen(false);
           }}
         >
           {menuOpen ? <CloseIcon className="h-5 w-5" /> : <MenuIcon className="h-5 w-5" />}
@@ -95,34 +96,18 @@ export function Header({ categories = [] }: { categories?: Category[] }) {
           </span>
         </Link>
 
-        <form
-          className="header-search mx-auto hidden w-full max-w-md flex-1 lg:flex xl:max-w-lg"
-          role="search"
-          onSubmit={onSearch}
-        >
-          <input
-            placeholder="Search products"
-            aria-label="Search products"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          <button type="submit" aria-label="Search">
-            <SearchIcon />
-          </button>
-        </form>
-
         <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-2.5">
           <button
             type="button"
-            className="icon-action lg:hidden"
-            aria-label="Open search"
-            aria-expanded={mobileSearchOpen}
+            className="icon-action"
+            aria-label={searchOpen ? "Close search" : "Open search"}
+            aria-expanded={searchOpen}
             onClick={() => {
-              setMobileSearchOpen((v) => !v);
+              setSearchOpen((v) => !v);
               setMenuOpen(false);
             }}
           >
-            <SearchIcon className="h-5 w-5" />
+            {searchOpen ? <CloseIcon className="h-5 w-5" /> : <SearchIcon className="h-5 w-5" />}
           </button>
           <Link className="icon-action" aria-label="Open profile" href="/profile">
             <UserIcon />
@@ -130,9 +115,9 @@ export function Header({ categories = [] }: { categories?: Category[] }) {
         </div>
       </div>
 
-      {mobileSearchOpen ? (
-        <div className="border-t border-[var(--silver)] px-4 py-3 lg:hidden">
-          <form className="header-search w-full" role="search" onSubmit={onSearch}>
+      {searchOpen ? (
+        <div className="border-t border-[var(--silver)] px-4 py-3 sm:px-6 lg:px-8">
+          <form className="header-search mx-auto w-full max-w-xl" role="search" onSubmit={onSearch}>
             <input
               placeholder="Search products"
               aria-label="Search products"
@@ -181,9 +166,9 @@ export function Header({ categories = [] }: { categories?: Category[] }) {
                   {categories.map((cat) => (
                     <Link
                       key={cat.slug}
-                      href={`/categories/${cat.slug}`}
+                      href={categoryHref(cat)}
                       className={`block px-4 py-2.5 text-sm text-[var(--navy)] hover:bg-[var(--surface)] hover:text-[var(--midnight)] ${
-                        pathname === `/categories/${cat.slug}`
+                        pathname === categoryHref(cat)
                           ? "bg-[var(--surface)] font-semibold text-[var(--midnight)]"
                           : ""
                       }`}
@@ -267,7 +252,7 @@ export function Header({ categories = [] }: { categories?: Category[] }) {
                   {categories.map((cat) => (
                     <Link
                       key={cat.slug}
-                      href={`/categories/${cat.slug}`}
+                      href={categoryHref(cat)}
                       className="block rounded-md px-3 py-2.5 text-sm text-[var(--navy)] hover:bg-[var(--surface)]"
                       onClick={closeMenu}
                     >

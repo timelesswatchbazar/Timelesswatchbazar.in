@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getAuthUser } from "@/lib/supabase/safe-auth";
+import { slugify as slugifyText } from "@/lib/slug";
 
 function revalidateStorefront(extraPaths: string[] = []) {
   revalidateTag("store-catalog", "max");
@@ -98,11 +99,7 @@ export async function adminLogout() {
 }
 
 function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
+  return slugifyText(value);
 }
 
 export async function saveProduct(formData: FormData) {
@@ -481,7 +478,7 @@ export async function saveCategory(formData: FormData) {
 
   const payload = {
     name,
-    slug: slugInput || slugify(name),
+    slug: slugify(slugInput || name),
     description,
     sort_order: sortOrder,
     is_active: isActive,
