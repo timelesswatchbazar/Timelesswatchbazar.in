@@ -9,13 +9,6 @@ import {
   type ProductVariantRow,
   type StoreProduct,
 } from "@/lib/database.types";
-import {
-  categories as localCategories,
-  getNewArrivals as localNewArrivals,
-  getProductBySlug as localGetProduct,
-  getProductsByCategory as localByCategory,
-  products as localProducts,
-} from "@/lib/products";
 import type { Category } from "@/lib/types";
 
 const PRODUCT_SELECT_BASE = `
@@ -99,29 +92,6 @@ async function selectProductBySlugQuery(
     .maybeSingle();
 }
 
-function toLocalProduct(
-  p: (typeof localProducts)[number],
-  extras?: Partial<StoreProduct>,
-): StoreProduct {
-  return {
-    id: p.id,
-    slug: p.slug,
-    name: p.name,
-    description: p.description,
-    image: p.image,
-    gallery: [],
-    category: p.category,
-    actualPrice: p.price,
-    price: p.price,
-    stock: 10,
-    isNew: p.isNew,
-    isBestSeller: false,
-    variants: [],
-    hasVariants: false,
-    ...extras,
-  };
-}
-
 function mapRows(rows: unknown): StoreProduct[] {
   const list = Array.isArray(rows) ? rows : [];
   return list.map((raw) => {
@@ -170,7 +140,7 @@ const loadProductsFromSupabase = unstable_cache(
 
     return mapRows(data);
   },
-  ["store-products-v6"],
+  ["store-products-v7"],
   { revalidate: 60, tags: ["store-products", "store-catalog"] },
 );
 
@@ -187,7 +157,6 @@ async function loadProductBySlugFromSupabase(slug: string): Promise<StoreProduct
     return mapRows([data])[0] || null;
   }
 
-  // Fallback: case-insensitive / id match from full catalog
   const all = await loadProductsFromSupabase();
   return (
     all.find(
@@ -204,18 +173,23 @@ const loadCategoriesFromSupabase = unstable_cache(
     const supabase = createPublicClient();
     const { data, error } = await supabase
       .from("categories")
-      .select("name, slug")
+      .select("name, slug, description")
       .eq("is_active", true)
       .order("sort_order");
 
-    if (error || !data) return localCategories;
-    return (data as Array<{ name: string; slug: string }>).map((row) => ({
-      name: row.name,
-      slug: row.slug,
-      description: "",
-    }));
+    if (error || !data) {
+      if (error) console.error("fetchCategories:", error.message);
+      return [];
+    }
+    return (data as Array<{ name: string; slug: string; description?: string }>).map(
+      (row) => ({
+        name: row.name,
+        slug: row.slug,
+        description: row.description || "",
+      }),
+    );
   },
-  ["store-categories-v2"],
+  ["store-categories-v3"],
   { revalidate: 60, tags: ["store-categories", "store-catalog"] },
 );
 
@@ -228,17 +202,21 @@ const loadBannersFromSupabase = unstable_cache(
       .eq("is_active", true)
       .order("sort_order");
 
-    if (error || !data) return [];
+    if (error || !data) {
+      if (error) console.error("fetchBanners:", error.message);
+      return [];
+    }
     return data as BannerRow[];
   },
   ["store-banners-v1"],
   { revalidate: 60, tags: ["store-banners", "store-catalog"] },
 );
 
-/** Request + ISR cache for storefront catalog */
+/** Storefront catalog — Supabase only (no local mock data). */
 export const fetchStoreProducts = cache(async (): Promise<StoreProduct[]> => {
   if (!hasSupabaseEnv()) {
-    return localProducts.map((p) => toLocalProduct(p));
+    console.warn("fetchStoreProducts: Supabase env missing");
+    return [];
   }
   try {
     return await loadProductsFromSupabase();
@@ -248,7 +226,6 @@ export const fetchStoreProducts = cache(async (): Promise<StoreProduct[]> => {
   }
 });
 
-/** Always loads a single product with its color variants (not list-cache only). */
 export const fetchStoreProduct = cache(async (slug: string): Promise<StoreProduct | null> => {
   let normalized = slug;
   try {
@@ -258,10 +235,7 @@ export const fetchStoreProduct = cache(async (slug: string): Promise<StoreProduc
   }
   if (!normalized) return null;
 
-  if (!hasSupabaseEnv()) {
-    const p = localGetProduct(normalized) || localGetProduct(normalized.toLowerCase());
-    return p ? toLocalProduct(p) : null;
-  }
+  if (!hasSupabaseEnv()) return null;
 
   try {
     return await loadProductBySlugFromSupabase(normalized);
@@ -272,33 +246,27 @@ export const fetchStoreProduct = cache(async (slug: string): Promise<StoreProduc
 });
 
 export async function fetchNewArrivals(): Promise<StoreProduct[]> {
-  if (!hasSupabaseEnv()) {
-    return localNewArrivals().map((p) => toLocalProduct(p, { isNew: true }));
-  }
   const all = await fetchStoreProducts();
   return all.filter((p) => p.isNew);
 }
 
 export async function fetchBestSellers(): Promise<StoreProduct[]> {
-  if (!hasSupabaseEnv()) return [];
   const all = await fetchStoreProducts();
   return all.filter((p) => p.isBestSeller);
 }
 
 export async function fetchByCategory(slug: string): Promise<StoreProduct[]> {
-  if (!hasSupabaseEnv()) {
-    return localByCategory(slug).map((p) => toLocalProduct(p));
-  }
   const all = await fetchStoreProducts();
   return all.filter((p) => p.category === slug);
 }
 
 export const fetchCategories = cache(async (): Promise<Category[]> => {
-  if (!hasSupabaseEnv()) return localCategories;
+  if (!hasSupabaseEnv()) return [];
   try {
     return await loadCategoriesFromSupabase();
-  } catch {
-    return localCategories;
+  } catch (err) {
+    console.error("fetchCategories:", err);
+    return [];
   }
 });
 
@@ -306,7 +274,8 @@ export const fetchBanners = cache(async (): Promise<BannerRow[]> => {
   if (!hasSupabaseEnv()) return [];
   try {
     return await loadBannersFromSupabase();
-  } catch {
+  } catch (err) {
+    console.error("fetchBanners:", err);
     return [];
   }
 });

@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/supabase/safe-auth";
 
 function revalidateStorefront(extraPaths: string[] = []) {
   revalidateTag("store-catalog", "max");
@@ -20,9 +21,7 @@ export async function requireAdmin() {
   }
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user } = await getAuthUser(supabase);
 
   if (!user) redirect("/admin/login");
 
@@ -60,9 +59,7 @@ export async function adminLogin(formData: FormData) {
     );
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user } = await getAuthUser(supabase);
 
   if (!user) redirect("/admin/login?error=login_failed");
 

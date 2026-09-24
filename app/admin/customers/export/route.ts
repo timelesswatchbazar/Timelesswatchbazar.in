@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/supabase/safe-auth";
 
 function csvEscape(value: unknown) {
   const text = String(value ?? "");
@@ -9,9 +10,7 @@ function csvEscape(value: unknown) {
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user } = await getAuthUser(supabase);
 
   if (!user) {
     return NextResponse.redirect(new URL("/admin/login", request.url));

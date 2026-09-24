@@ -1,38 +1,45 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createMiddlewareClient } from "@/lib/supabase/admin";
+import { getAuthUser } from "@/lib/supabase/safe-auth";
+
+function hasSupabaseAuthCookie(request: NextRequest) {
+  return request.cookies
+    .getAll()
+    .some((c) => c.name.includes("-auth-token") || c.name.startsWith("sb-"));
+}
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (!pathname.startsWith("/admin")) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     return NextResponse.next();
   }
 
-  if (
-    pathname.startsWith("/admin/login") ||
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  ) {
+  const isAdminRoute = pathname.startsWith("/admin");
+  const isProfileRoute = pathname === "/profile" || pathname.startsWith("/profile/");
+
+  if (!isAdminRoute && !isProfileRoute) {
     return NextResponse.next();
   }
 
-  // Fast reject when no Supabase auth cookie is present (avoids a network round-trip).
-  const hasSessionCookie = request.cookies
-    .getAll()
-    .some((c) => c.name.includes("-auth-token") || c.name.startsWith("sb-"));
-  if (!hasSessionCookie) {
+  if (pathname.startsWith("/admin/login")) {
+    return NextResponse.next();
+  }
+
+  if (isAdminRoute && !hasSupabaseAuthCookie(request)) {
     const url = request.nextUrl.clone();
     url.pathname = "/admin/login";
     return NextResponse.redirect(url);
   }
 
   const { supabase, response } = createMiddlewareClient(request);
-  // getSession reads the JWT locally; requireAdmin() still verifies with getUser().
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const { user } = await getAuthUser(supabase);
 
-  if (!session?.user) {
+  if (isProfileRoute) {
+    return response;
+  }
+
+  if (!user) {
     const url = request.nextUrl.clone();
     url.pathname = "/admin/login";
     return NextResponse.redirect(url);
@@ -41,7 +48,7 @@ export async function proxy(request: NextRequest) {
   const { data: admin } = await supabase
     .from("admin_users")
     .select("user_id")
-    .eq("user_id", session.user.id)
+    .eq("user_id", user.id)
     .eq("is_active", true)
     .maybeSingle();
 
@@ -57,5 +64,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/profile", "/profile/:path*"],
 };

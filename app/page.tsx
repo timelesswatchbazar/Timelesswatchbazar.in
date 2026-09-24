@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { BannerCarousel } from "@/components/banner-carousel";
+import { ProductCard } from "@/components/product-card";
 import { ProductCarousel } from "@/components/product-carousel";
+import { ScrollReveal } from "@/components/scroll-reveal";
 import {
   fetchBanners,
   fetchCategories,
@@ -70,6 +72,24 @@ export default async function HomePage() {
           linkLabel="View Category"
         />
       ))}
+
+      <ScrollReveal as="section" className="mt-10 sm:mt-14">
+        <p className="section-eyebrow">Full catalog</p>
+        <h2 className="mt-2 text-xl font-bold tracking-tight text-[var(--midnight)] sm:text-3xl">
+          All Products
+        </h2>
+        <p className="mt-2 max-w-2xl text-sm text-[var(--muted)] sm:text-base">
+          Every watch in our store — same catalog on mobile and desktop.
+        </p>
+        <div className="product-grid mt-6 sm:mt-8">
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+        {!products.length && (
+          <p className="mt-8 text-[var(--muted)]">No products available yet.</p>
+        )}
+      </ScrollReveal>
     </div>
   );
 }

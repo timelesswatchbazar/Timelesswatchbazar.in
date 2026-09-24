@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/supabase/safe-auth";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
 function profileError(message: string): never {
@@ -168,9 +169,7 @@ export async function customerSignOut() {
 
 export async function updateCustomerProfile(formData: FormData) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user } = await getAuthUser(supabase);
 
   if (!user?.email) redirect("/profile?error=unauthorized");
 

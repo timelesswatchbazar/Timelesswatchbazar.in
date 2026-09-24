@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ProfilePanel } from "@/components/profile-panel";
 import { createClient } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/supabase/safe-auth";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import type { CustomerRow, OrderRow } from "@/lib/database.types";
 
@@ -31,9 +32,7 @@ export default async function ProfilePage({ searchParams }: Props) {
   if (hasSupabaseEnv()) {
     try {
       const supabase = await createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { user } = await getAuthUser(supabase);
 
       if (user?.email) {
         userEmail = user.email;

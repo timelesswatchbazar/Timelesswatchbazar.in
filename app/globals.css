@@ -144,12 +144,30 @@ body {
   pointer-events: none;
 }
 
-.group:hover .dropdown-panel {
+.group:hover .dropdown-panel,
+.group:focus-within .dropdown-panel {
   pointer-events: auto;
 }
 
 .mobile-menu-panel {
   background: #fff;
+  animation: 0.22s both mobileDrawerIn;
+}
+
+@keyframes mobileDrawerIn {
+  from {
+    opacity: 0.85;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.nav-dropdown:hover > .nav-link::after,
+.nav-dropdown:focus-within > .nav-link::after {
+  opacity: 1;
 }
 
 details > summary {

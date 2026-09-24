@@ -29,6 +29,9 @@ export default async function CategoriesPage() {
           <ProductCard key={product.id} product={product} />
         ))}
       </div>
+      {!products.length && (
+        <p className="mt-8 text-[var(--muted)]">No products available yet.</p>
+      )}
     </div>
   );
 }
