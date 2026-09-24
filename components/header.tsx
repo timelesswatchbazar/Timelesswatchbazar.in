@@ -69,20 +69,6 @@ export function Header({ categories = [] }: { categories?: Category[] }) {
     <header className="site-header sticky top-0 z-[100] border-b border-[var(--silver)] !bg-white">
       {/* Top bar */}
       <div className="mx-auto flex max-w-7xl items-center gap-2 px-4 py-3 sm:gap-4 sm:px-6 lg:px-8">
-        <button
-          type="button"
-          className="icon-action lg:hidden"
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
-          aria-expanded={menuOpen}
-          aria-controls="mobile-nav-drawer"
-          onClick={() => {
-            setMenuOpen((v) => !v);
-            setSearchOpen(false);
-          }}
-        >
-          {menuOpen ? <CloseIcon className="h-5 w-5" /> : <MenuIcon className="h-5 w-5" />}
-        </button>
-
         <Link
           href="/"
           className="brand-text shrink-0"
@@ -112,6 +98,19 @@ export function Header({ categories = [] }: { categories?: Category[] }) {
           <Link className="icon-action" aria-label="Open profile" href="/profile">
             <UserIcon />
           </Link>
+          <button
+            type="button"
+            className="icon-action lg:!hidden"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-nav-drawer"
+            onClick={() => {
+              setMenuOpen((v) => !v);
+              setSearchOpen(false);
+            }}
+          >
+            {menuOpen ? <CloseIcon className="h-5 w-5" /> : <MenuIcon className="h-5 w-5" />}
+          </button>
         </div>
       </div>
 
